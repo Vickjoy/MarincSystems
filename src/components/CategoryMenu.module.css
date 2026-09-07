@@ -1,0 +1,25 @@
+.select {
+  border: 1px solid #6096B4;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-right: 1rem;
+  background-color: #ffffff;
+  color: #6096B4;
+  font-weight: 500;
+  font-size: 14px;
+  min-width: 160px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #4A7A96;
+  box-shadow: 0 0 0 3px rgba(96, 150, 180, 0.1);
+  background-color: #f8fafc;
+}
+
+.select:hover {
+  border-color: #4A7A96;
+  background-color: #f8fafc;
+}

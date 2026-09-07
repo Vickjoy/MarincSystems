@@ -1,0 +1,375 @@
+/* Floating Button Container */
+.floatingContainer {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 1000;
+  animation: slideIn 0.5s ease-out;
+}
+
+.floatingText {
+  background: #0f0f0f;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+  opacity: 0;
+  transform: translateX(10px);
+  animation: fadeInSlide 0.5s ease-out 1s forwards;
+}
+
+.floatingButton {
+  width: 60px;
+  height: 60px;
+  background: #25d366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+  transition: all 0.3s ease;
+  border: none;
+  animation: pulse 2s infinite;
+}
+
+.floatingButton:hover {
+  background: #20ba5a;
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6);
+  animation: none;
+}
+
+.floatingButton:active {
+  transform: scale(1.05);
+}
+
+.whatsappIcon {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  width: 400px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+  position: relative;
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #25d366 0%, #20ba5a 100%);
+  color: white;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+}
+
+.modalIcon {
+  margin-bottom: 12px;
+}
+
+.whatsappIconLarge {
+  width: 48px;
+  height: 48px;
+  color: white;
+}
+
+.modalHeader h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modalHeader p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.modalBody {
+  padding: 24px;
+}
+
+.responseTime {
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0 0 20px 0;
+}
+
+.userList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 2px solid #f3f4f6;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.userItem:hover {
+  border-color: #25d366;
+  background: #f0fdf4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.1);
+}
+
+.userAvatar {
+  width: 48px;
+  height: 48px;
+  background: #25d366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.whatsappIconSmall {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+.userInfo {
+  flex: 1;
+}
+
+.userInfo h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.userInfo p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.onlineIndicator {
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #10b981;
+  flex-shrink: 0;
+  animation: onlinePulse 2s infinite;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes onlinePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .floatingContainer {
+    bottom: 20px;
+    right: 20px;
+    gap: 12px;
+  }
+  
+  .floatingButton {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .whatsappIcon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .floatingText {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 18px;
+  }
+  
+  .modal {
+    width: 350px;
+    margin: 20px;
+  }
+  
+  .modalHeader {
+    padding: 20px;
+  }
+  
+  .modalBody {
+    padding: 20px;
+  }
+  
+  .userItem {
+    padding: 14px;
+    gap: 14px;
+  }
+  
+  .userAvatar {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .whatsappIconSmall {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .floatingContainer {
+    bottom: 15px;
+    right: 15px;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .floatingButton {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .whatsappIcon {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .floatingText {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 16px;
+  }
+  
+  .modal {
+    width: 320px;
+    margin: 15px;
+  }
+  
+  .modalHeader {
+    padding: 18px;
+  }
+  
+  .modalHeader h3 {
+    font-size: 18px;
+  }
+  
+  .modalHeader p {
+    font-size: 13px;
+  }
+  
+  .modalBody {
+    padding: 18px;
+  }
+}
