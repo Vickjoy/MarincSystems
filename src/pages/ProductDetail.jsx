@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { Title, Meta, Link } from 'react-head';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -8,7 +9,7 @@ import ProductForm from '../components/ProductForm';
 import { useCart } from '../context/CartContext';
 import ProductCarousel from '../components/ProductCarousel';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_URL = `${API_BASE_URL}/api`;
 
 const ProductDetail = () => {
   const params = useParams();

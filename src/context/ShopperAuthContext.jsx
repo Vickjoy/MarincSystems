@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { createContext, useContext, useState } from 'react';
 
 const ShopperAuthContext = createContext();
@@ -14,7 +15,7 @@ export const ShopperAuthProvider = ({ children }) => {
 
   const fetchShopperInfo = async (accessToken) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/me/', {
+      const response = await fetch(`${API_BASE_URL}/api/me/`, {
         headers: { 'Authorization': 'Bearer ' + accessToken }
       });
       if (!response.ok) throw new Error('Failed to fetch shopper info');

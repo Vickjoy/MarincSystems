@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 // Helper to refresh token and retry request
 async function fetchWithAuthRetry(url, options = {}, retry = true) {
   let accessToken = localStorage.getItem('admin_access_token');
@@ -24,7 +25,7 @@ async function fetchWithAuthRetry(url, options = {}, retry = true) {
       // Try to refresh token
       const refreshToken = localStorage.getItem('admin_refresh_token');
       if (refreshToken) {
-        const refreshResp = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+        const refreshResp = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh: refreshToken })
@@ -84,7 +85,7 @@ export const fetchCategories = async (token) => {
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     
     const response = await fetch(
-      `http://127.0.0.1:8000/api/categories/?_=${timestamp}`,
+      `${API_BASE_URL}/api/categories/?_=${timestamp}`,
       { 
         headers,
         cache: 'no-store' // Disable browser caching
@@ -113,7 +114,7 @@ export const fetchSubcategories = async (categorySlug, token) => {
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     
     const response = await fetch(
-      `http://127.0.0.1:8000/api/categories/${categorySlug}/subcategories/?_=${timestamp}`,
+      `${API_BASE_URL}/api/categories/${categorySlug}/subcategories/?_=${timestamp}`,
       { 
         headers,
         cache: 'no-store' // Disable browser caching
@@ -131,7 +132,7 @@ export const fetchSubcategories = async (categorySlug, token) => {
 
 export const createCategory = async (name, token, type = 'fire_safety') => {
   try {
-    const response = await fetchWithAuthRetry('http://127.0.0.1:8000/api/categories/', {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/categories/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -149,7 +150,7 @@ export const createCategory = async (name, token, type = 'fire_safety') => {
 
 export const updateCategory = async (id, name, token) => {
   try {
-    const response = await fetchWithAuthRetry(`http://127.0.0.1:8000/api/categories/${id}/`, {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/categories/${id}/`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -167,7 +168,7 @@ export const updateCategory = async (id, name, token) => {
 
 export const deleteCategory = async (id, token) => {
   try {
-    const response = await fetchWithAuthRetry(`http://127.0.0.1:8000/api/categories/${id}/`, {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/categories/${id}/`, {
       method: 'DELETE',
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
@@ -181,7 +182,7 @@ export const deleteCategory = async (id, token) => {
 
 export const createSubcategory = async (categorySlug, name, token) => {
   try {
-    const response = await fetchWithAuthRetry(`http://127.0.0.1:8000/api/categories/${categorySlug}/subcategories/`, {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/categories/${categorySlug}/subcategories/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -199,7 +200,7 @@ export const createSubcategory = async (categorySlug, name, token) => {
 
 export const updateSubcategory = async (categorySlug, subcategoryId, name, token) => {
   try {
-    const response = await fetchWithAuthRetry(`http://127.0.0.1:8000/api/categories/${categorySlug}/subcategories/${subcategoryId}/`, {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/categories/${categorySlug}/subcategories/${subcategoryId}/`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -217,7 +218,7 @@ export const updateSubcategory = async (categorySlug, subcategoryId, name, token
 
 export const deleteSubcategory = async (categorySlug, subcategoryId, token) => {
   try {
-    const response = await fetchWithAuthRetry(`http://127.0.0.1:8000/api/categories/${categorySlug}/subcategories/${subcategoryId}/`, {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/categories/${categorySlug}/subcategories/${subcategoryId}/`, {
       method: 'DELETE',
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
@@ -242,7 +243,7 @@ export const fetchProductsForSubcategory = async (subcategorySlug) => {
     // Add cache-busting for products as well
     const timestamp = new Date().getTime();
     const response = await fetch(
-      `http://127.0.0.1:8000/api/subcategories/${subcategorySlug}/products/?_=${timestamp}`,
+      `${API_BASE_URL}/api/subcategories/${subcategorySlug}/products/?_=${timestamp}`,
       { cache: 'no-store' }
     );
     if (!response.ok) throw new Error('Failed to fetch products for subcategory');
@@ -266,7 +267,7 @@ export const createProduct = async (form, token) => {
     // Only send image if it's a file (not a string)
     if (form.image && typeof form.image !== 'string') formData.append('image', form.image);
     // Use subcategory slug in the endpoint
-    const endpoint = `http://127.0.0.1:8000/api/subcategories/${form.subcategory}/products/create/`;
+    const endpoint = `${API_BASE_URL}/api/subcategories/${form.subcategory}/products/create/`;
     const response = await fetchWithAuthRetry(endpoint, {
       method: 'POST',
       headers: {
@@ -305,7 +306,7 @@ export const updateProduct = async (id, form, token) => {
     if (form.link) formData.append('link', form.link);
     if (form.image && typeof form.image !== 'string') formData.append('image', form.image);
     if (form.pdf && typeof form.pdf !== 'string') formData.append('pdf', form.pdf);
-    const response = await fetchWithAuthRetry(`http://127.0.0.1:8000/api/products/${id}/`, {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/products/${id}/`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -322,7 +323,7 @@ export const updateProduct = async (id, form, token) => {
 
 export const deleteProduct = async (id, token) => {
   try {
-    const response = await fetchWithAuthRetry(`http://127.0.0.1:8000/api/products/${id}/`, {
+    const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/products/${id}/`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -348,7 +349,7 @@ export const fetchBlogs = async () => {
     const timestamp = new Date().getTime();
     
     const response = await fetch(
-      `http://127.0.0.1:8000/api/blogs/?_=${timestamp}`,
+      `${API_BASE_URL}/api/blogs/?_=${timestamp}`,
       { cache: 'no-store' }
     );
     
@@ -380,7 +381,7 @@ export const fetchFooterBlogs = async () => {
     
     // Try the footer endpoint first
     let response = await fetch(
-      `http://127.0.0.1:8000/api/blogs/footer/?_=${timestamp}`,
+      `${API_BASE_URL}/api/blogs/footer/?_=${timestamp}`,
       { cache: 'no-store' }
     );
     
@@ -388,7 +389,7 @@ export const fetchFooterBlogs = async () => {
     if (!response.ok) {
       console.warn('Footer endpoint failed, trying general blogs endpoint');
       response = await fetch(
-        `http://127.0.0.1:8000/api/blogs/?_=${timestamp}`,
+        `${API_BASE_URL}/api/blogs/?_=${timestamp}`,
         { cache: 'no-store' }
       );
     }
@@ -418,7 +419,7 @@ export const fetchBlogBySlug = async (slug) => {
   try {
     const timestamp = new Date().getTime();
     const response = await fetch(
-      `http://127.0.0.1:8000/api/blogs/${slug}/?_=${timestamp}`,
+      `${API_BASE_URL}/api/blogs/${slug}/?_=${timestamp}`,
       { cache: 'no-store' }
     );
     

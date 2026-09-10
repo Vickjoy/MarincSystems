@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import InstagramIcon from '../assets/Instagram.png';
@@ -14,7 +15,7 @@ const Footer = () => {
 
   useEffect(() => {
     // Fetch latest blogs for footer
-    fetch('http://127.0.0.1:8000/api/blogs/footer/')
+    fetch(`${API_BASE_URL}/api/blogs/footer/`)
       .then(res => res.json())
       .then(data => {
         console.log('Fetched blogs:', data);
@@ -35,7 +36,7 @@ const Footer = () => {
     }
     
     if (imageUrl.startsWith('/')) {
-      return `http://127.0.0.1:8000${imageUrl}`;
+      return `${API_BASE_URL}${imageUrl}`;
     }
     
     return imageUrl;

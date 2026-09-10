@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './PopularProductsCarousel.module.css';
@@ -21,8 +22,8 @@ const PopularProductsCarousel = () => {
       setLoading(true);
       setError(null);
       
-      console.log('📡 Fetching from: http://127.0.0.1:8000/api/products/popular');
-      const response = await fetch('http://127.0.0.1:8000/api/products/popular');
+      console.log(`📡 Fetching from: ${API_BASE_URL}/api/products/popular`);
+      const response = await fetch(`${API_BASE_URL}/api/products/popular`);
       
       console.log('📊 Response status:', response.status);
       console.log('📊 Response ok:', response.ok);

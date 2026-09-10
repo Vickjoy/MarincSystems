@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import styles from './Home.module.css';
 import PopularProductsCarousel from '../components/PopularProductsCarousel';
@@ -119,7 +120,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/hero-banners/');
+        const response = await fetch(`${API_BASE_URL}/api/hero-banners/`);
         const data = await response.json();
         
         const promotionalSlides = data.map(banner => ({

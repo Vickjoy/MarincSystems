@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './Contact.module.css';
@@ -42,7 +43,7 @@ const heroTextStyle = {
   letterSpacing: '0.04em',
 };
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_URL = `${API_BASE_URL}/api`;
 
 const Contact = () => {
   const [formData, setFormData] = useState({

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect } from 'react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { useCart } from '../context/CartContext';
@@ -104,7 +105,7 @@ const OrderSummary = () => {
                               ? URL.createObjectURL(item.image)
                               : (typeof item.image === 'string' && (item.image.startsWith('data:') || item.image.startsWith('blob:')))
                                 ? item.image
-                                : (item.image.startsWith('http') ? item.image : `http://127.0.0.1:8000${item.image}`)
+                                : (item.image.startsWith('http') ? item.image : `${API_BASE_URL}${item.image}`)
                             : '/placeholder.png'
                         }
                         alt={item.name}

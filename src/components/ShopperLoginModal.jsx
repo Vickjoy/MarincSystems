@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useShopperAuth } from '../context/ShopperAuthContext';
@@ -20,7 +21,7 @@ const ShopperLoginModal = ({ open, onClose, onSuccess }) => {
     setSubmitting(true);
     try {
       if (mode === 'login') {
-        const response = await fetch('http://127.0.0.1:8000/api/auth/login/', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -35,7 +36,7 @@ const ShopperLoginModal = ({ open, onClose, onSuccess }) => {
           setError(data.detail || 'Login failed. Please check your credentials.');
         }
       } else {
-        const regResp = await fetch('http://127.0.0.1:8000/api/auth/register/', {
+        const regResp = await fetch(`${API_BASE_URL}/api/auth/register/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, email, password })
@@ -48,7 +49,7 @@ const ShopperLoginModal = ({ open, onClose, onSuccess }) => {
             await login(regData.access, regData.refresh);
             await fetchShopperInfo(regData.access);
           } else {
-            const loginResp = await fetch('http://127.0.0.1:8000/api/auth/login/', {
+            const loginResp = await fetch(`${API_BASE_URL}/api/auth/login/`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ username, password })

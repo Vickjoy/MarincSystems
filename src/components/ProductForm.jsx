@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,10 +35,10 @@ const ProductForm = ({ initialValues = {}, onSubmit, onCancel, loading, subcateg
   });
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/products/all-categories/')
+    fetch(`${API_BASE_URL}/api/products/all-categories/`)
       .then(res => res.json())
       .then(data => setAllCategories(data));
-    fetch('http://127.0.0.1:8000/api/products/all-subcategories/')
+    fetch(`${API_BASE_URL}/api/products/all-subcategories/`)
       .then(res => res.json())
       .then(data => setAllSubcategories(data));
   }, []);
@@ -166,7 +167,7 @@ const ProductForm = ({ initialValues = {}, onSubmit, onCancel, loading, subcateg
         {imageFileName && <div style={{ fontSize: 13, color: '#6096B4', marginTop: 4 }}>{imageFileName}</div>}
         {imagePreview && <img src={imagePreview} alt="preview" style={{ width: 80, marginTop: 8, borderRadius: 4 }} />}
         {!imagePreview && form.image && typeof form.image === 'string' && (
-          <img src={`http://127.0.0.1:8000${form.image}`} alt="preview" style={{ width: 80, marginTop: 8, borderRadius: 4 }} />
+          <img src={`${API_BASE_URL}${form.image}`} alt="preview" style={{ width: 80, marginTop: 8, borderRadius: 4 }} />
         )}
       </div>
 

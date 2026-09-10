@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './ProductCarousel.module.css';
@@ -14,7 +15,7 @@ const ProductCarousel = ({ productSlug }) => {
       try {
         setLoading(true);
         const response = await fetch(
-          `http://127.0.0.1:8000/api/products/${productSlug}/related/`
+          `${API_BASE_URL}/api/products/${productSlug}/related/`
         );
         if (!response.ok) throw new Error('Failed to fetch related products');
         const data = await response.json();

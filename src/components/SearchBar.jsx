@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './SearchBar.module.css';
@@ -24,19 +25,19 @@ const SearchBar = () => {
       let allProducts = [];
       
       // First, get all categories
-      const categoriesRes = await fetch('http://127.0.0.1:8000/api/categories/');
+      const categoriesRes = await fetch(`${API_BASE_URL}/api/categories/`);
       const categories = await categoriesRes.json();
       
       // For each category, get subcategories
       for (const cat of categories) {
         try {
-          const subcategoriesRes = await fetch(`http://127.0.0.1:8000/api/categories/${cat.slug}/subcategories/`);
+          const subcategoriesRes = await fetch(`${API_BASE_URL}/api/categories/${cat.slug}/subcategories/`);
           const subcategories = await subcategoriesRes.json();
           
           // For each subcategory, get products
           for (const sub of subcategories) {
             try {
-              const productsRes = await fetch(`http://127.0.0.1:8000/api/subcategories/${sub.slug}/products/`);
+              const productsRes = await fetch(`${API_BASE_URL}/api/subcategories/${sub.slug}/products/`);
               const productsData = await productsRes.json();
               
               // Handle both paginated and non-paginated responses

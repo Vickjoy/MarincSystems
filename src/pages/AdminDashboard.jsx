@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -343,7 +344,7 @@ const AdminDashboard = () => {
                                   <div className={styles.productImageContainer}>
                                     <img
                                       src={product.image ? 
-                                        (product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`) 
+                                        (product.image.startsWith('http') ? product.image : `${API_BASE_URL}${product.image}`) 
                                         : '/placeholder.png'
                                       }
                                       alt={product.name}

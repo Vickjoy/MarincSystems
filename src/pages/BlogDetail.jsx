@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styles from './BlogDetail.module.css';
@@ -9,7 +10,7 @@ const BlogDetail = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/blogs/${slug}/`)
+    fetch(`${API_BASE_URL}/api/blogs/${slug}/`)
       .then(res => {
         if (!res.ok) throw new Error('Blog not found');
         return res.json();
@@ -32,10 +33,10 @@ const BlogDetail = () => {
     }
     
     if (imageUrl.startsWith('/')) {
-      return `http://127.0.0.1:8000${imageUrl}`;
+      return `${API_BASE_URL}${imageUrl}`;
     }
     
-    return `http://127.0.0.1:8000/media/${imageUrl}`;
+    return `${API_BASE_URL}/media/${imageUrl}`;
   };
 
   // Parse content to detect headings

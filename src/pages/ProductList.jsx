@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ProductCard from '../components/ProductCard';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -96,7 +97,7 @@ const fetchProductsWithCache = async (subcategorySlug, page = 1, pageSize = 40) 
     return cached;
   }
   
-  const url = `http://127.0.0.1:8000/api/subcategories/${subcategorySlug}/products/?page=${page}&page_size=${pageSize}`;
+  const url = `${API_BASE_URL}/api/subcategories/${subcategorySlug}/products/?page=${page}&page_size=${pageSize}`;
   const response = await fetch(url);
   const data = await response.json();
   

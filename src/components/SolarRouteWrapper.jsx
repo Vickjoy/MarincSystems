@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ComingSoon from './ComingSoon';
@@ -23,7 +24,7 @@ const SolarRouteWrapper = () => {
         
         // Fetch all categories with cache-busting timestamp
         const timestamp = new Date().getTime();
-        const categoriesResponse = await fetch(`http://127.0.0.1:8000/api/categories/?_=${timestamp}`);
+        const categoriesResponse = await fetch(`${API_BASE_URL}/api/categories/?_=${timestamp}`);
         const categories = await categoriesResponse.json();
         console.log('All categories fetched:', categories);
         
@@ -70,7 +71,7 @@ const SolarRouteWrapper = () => {
         try {
           // Fetch subcategories with cache-busting
           const subcategoriesResponse = await fetch(
-            `http://127.0.0.1:8000/api/categories/${slug}/subcategories/?_=${timestamp}`
+            `${API_BASE_URL}/api/categories/${slug}/subcategories/?_=${timestamp}`
           );
           const subcategories = await subcategoriesResponse.json();
           

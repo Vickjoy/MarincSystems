@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ProductCard.module.css';
@@ -12,7 +13,7 @@ const ProductCard = ({ product, onDelete }) => {
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/${product.id}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

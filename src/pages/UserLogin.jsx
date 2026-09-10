@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -32,7 +33,7 @@ const UserLogin = () => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/token/', {
+      const response = await fetch(`${API_BASE_URL}/api/token/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +73,7 @@ const UserLogin = () => {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/register/', {
+      const response = await fetch(`${API_BASE_URL}/api/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +110,7 @@ const UserLogin = () => {
   const handleGoogleLogin = () => {
     const currentPath = location.pathname;
     const redirectUrl = encodeURIComponent(location.state?.from || currentPath);
-    window.location.href = `http://localhost:8000/accounts/google/login/?next=${redirectUrl}`;
+    window.location.href = `${API_BASE_URL}/accounts/google/login/?next=${redirectUrl}`;
   };
 
   return (

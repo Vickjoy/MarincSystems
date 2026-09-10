@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedUser) {
         try {
           // Verify token is still valid
-          const response = await fetch('http://127.0.0.1:8000/api/me/', {
+          const response = await fetch(`${API_BASE_URL}/api/me/`, {
             headers: {
               'Authorization': `Bearer ${storedToken}`
             }
@@ -56,7 +57,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserInfo = async (accessToken) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/me/', {
+      const response = await fetch(`${API_BASE_URL}/api/me/`, {
         headers: {
           'Authorization': 'Bearer ' + accessToken
         }
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchAdminUserInfo = async (accessToken) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/me/', {
+      const response = await fetch(`${API_BASE_URL}/api/me/`, {
         headers: {
           'Authorization': 'Bearer ' + accessToken
         }
@@ -134,7 +135,7 @@ export const AuthProvider = ({ children }) => {
     const storedRefresh = refreshToken || localStorage.getItem('user_refresh_token');
     if (!storedRefresh) return false;
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+      const response = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: storedRefresh })
@@ -158,7 +159,7 @@ export const AuthProvider = ({ children }) => {
     const storedRefresh = adminRefreshToken || localStorage.getItem('admin_refresh_token');
     if (!storedRefresh) return false;
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+      const response = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: storedRefresh })
