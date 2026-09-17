@@ -31,7 +31,7 @@ const OrderSummary = () => {
     
     // Encode the message for URL
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/254117320000?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/254113808073?text=${encodedMessage}`;
     
     // Clear the cart using both methods to ensure it works
     if (clearCart) {

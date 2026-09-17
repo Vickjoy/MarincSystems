@@ -2,7 +2,6 @@ import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import InstagramIcon from '../assets/Instagram.png';
-import LinkedInIcon from '../assets/LinkedIn.png';
 import TiktokIcon from '../assets/Tiktok.png';
 import FacebookIcon from '../assets/Facebook.png';
 import WhatsAppIcon from '../assets/whatsapp.png';
@@ -65,23 +64,14 @@ const Footer = () => {
       <div className={styles.footer}>
         {/* First Column - Company Info */}
         <div className={styles.footerColumn}>
-          <h3 className={styles.sectionTitle}>Edge Systems Limited</h3>
+          <h3 className={styles.sectionTitle}>Marinc Systems Limited</h3>
           <p className={styles.companyDescription}>
             Your trusted partner for fire safety, networking & ICT solutions, and solar energy systems in Kenya. 
             Protecting lives, connecting businesses, and powering the future.
           </p>
           <div className={styles.socialLinks}>
             <a 
-              href="https://www.linkedin.com/in/edge-systems-903b32222?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className={styles.socialLink}
-              aria-label="LinkedIn"
-            >
-              <img src={LinkedInIcon} alt="LinkedIn" className={styles.socialIcon} />
-            </a>
-            <a 
-              href="https://www.facebook.com/edgesystemslimited" 
+              href="https://www.facebook.com/share/1EdzJithHP/" 
               target="_blank" 
               rel="noopener noreferrer" 
               className={styles.socialLink}
@@ -90,7 +80,7 @@ const Footer = () => {
               <img src={FacebookIcon} alt="Facebook" className={styles.socialIcon} />
             </a>
             <a 
-              href="https://www.instagram.com/edge_systems.co.ke?utm_source=qr&igsh=aHpldnhnZnRmYjM3" 
+              href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" 
               target="_blank" 
               rel="noopener noreferrer" 
               className={styles.socialLink}
@@ -99,7 +89,7 @@ const Footer = () => {
               <img src={InstagramIcon} alt="Instagram" className={styles.socialIcon} />
             </a>
             <a 
-              href="https://www.tiktok.com/@edgesystems6?_t=ZM-8yCr3l8iIwn&_r=1" 
+              href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" 
               target="_blank" 
               rel="noopener noreferrer" 
               className={styles.socialLink}
@@ -108,7 +98,7 @@ const Footer = () => {
               <img src={TiktokIcon} alt="TikTok" className={styles.socialIcon} />
             </a>
             <a 
-              href="https://wa.me/254117320000" 
+              href="https://wa.me/254113808073" 
               target="_blank" 
               rel="noopener noreferrer" 
               className={styles.socialLink}
@@ -159,15 +149,15 @@ const Footer = () => {
           <ul className={styles.contactInfo}>
             <li className={styles.contactItem}>
               <span className={styles.contactIcon}>📍</span>
-              <span>Shelter house, Dai dai Road, South B, Ground Floor Apartment GF4, Nairobi</span>
+              <span>Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant</span>
             </li>
             <li className={styles.contactItem}>
               <span className={styles.contactIcon}>☎️</span>
-              <span>+254 721 247 356 / 0117320000</span>
+              <span>+254 721 247 356 / +254 111 808073 </span>
             </li>
             <li className={styles.contactItem}>
               <span className={styles.contactIcon}>📧</span>
-              <span>info@edgesystems.co.ke</span>
+              <span>info@marincsystems.co.ke</span>
             </li>
           </ul>
         </div>
@@ -230,7 +220,7 @@ const Footer = () => {
       {/* Bottom Copyright Bar */}
       <div className={styles.copyrightBar}>
         <p className={styles.copyrightText}>
-          © 2025 Edge Systems Ltd. All rights reserved.
+           © {new Date().getFullYear()} Marinc Systems Ltd. All rights reserved.
         </p>
       </div>
     </footer>

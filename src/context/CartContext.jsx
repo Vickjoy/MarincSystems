@@ -10,7 +10,7 @@ export const CartProvider = ({ children }) => {
   // Load cart from localStorage on initial mount
   useEffect(() => {
     try {
-      const savedCart = localStorage.getItem('edgeSystemsCart');
+      const savedCart = localStorage.getItem('marincSystemsCart');
       if (savedCart) {
         const parsedCart = JSON.parse(savedCart);
         // Validate the parsed data
@@ -21,14 +21,14 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
       // Clear corrupted data
-      localStorage.removeItem('edgeSystemsCart');
+      localStorage.removeItem('marincSystemsCart');
     }
   }, []);
 
   // Save cart to localStorage whenever cartItems changes
   useEffect(() => {
     try {
-      localStorage.setItem('edgeSystemsCart', JSON.stringify(cartItems));
+      localStorage.setItem('marincSystemsCart', JSON.stringify(cartItems));
     } catch (error) {
       console.error('Error saving cart to localStorage:', error);
     }
@@ -73,7 +73,7 @@ export const CartProvider = ({ children }) => {
     setCartItems([]);
     // Explicitly clear from localStorage as well
     try {
-      localStorage.removeItem('edgeSystemsCart');
+      localStorage.removeItem('marincSystemsCart');
     } catch (error) {
       console.error('Error clearing cart from localStorage:', error);
     }
@@ -88,9 +88,9 @@ export const CartProvider = ({ children }) => {
     setCartItems(items);
     try {
       if (items.length === 0) {
-        localStorage.removeItem('edgeSystemsCart');
+        localStorage.removeItem('marincSystemsCart');
       } else {
-        localStorage.setItem('edgeSystemsCart', JSON.stringify(items));
+        localStorage.setItem('marincSystemsCart', JSON.stringify(items));
       }
     } catch (error) {
       console.error('Error updating cart in localStorage:', error);

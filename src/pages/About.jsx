@@ -15,7 +15,7 @@ const About = () => {
       <section className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
-            About <span className={styles.highlight}>Edge Systems Ltd</span>
+            About <span className={styles.highlight}>Marinc Systems Ltd</span>
           </h1>
           <p className={styles.heroSubtitle}>
             Kenya's Trusted Partner in Fire Safety & Integrated Solutions
@@ -30,14 +30,14 @@ const About = () => {
             <div className={styles.textContent}>
               <h2 className={styles.sectionTitle}>Who We Are</h2>
               <p className={styles.bodyText}>
-                <strong>Edge Systems Ltd</strong> is a leading Kenyan company specializing primarily in fire safety systems and solutions. Our core strength lies in delivering comprehensive Eaton fire alarm and detection systems, including advanced fire panels, detectors, alarms, and compliance-driven fire protection services.
+                <strong>Marinc Systems Ltd</strong> is a leading Kenyan company specializing primarily in fire safety systems and solutions. Our core strength lies in delivering comprehensive Eaton fire alarm and detection systems, including advanced fire panels, detectors, alarms, and compliance-driven fire protection services.
               </p>
               <p className={styles.bodyText}>
                 We play a vital role in safeguarding businesses, institutions, and properties across Kenya by providing end-to-end fire safety solutions from initial design and professional installation to ongoing maintenance and emergency response readiness.
               </p>
             </div>
             <div className={styles.imageContent}>
-              <img src={AboutOffice} alt="Edge Systems Office" className={styles.featuredImage} />
+              <img src={AboutOffice} alt="Marinc Systems Office" className={styles.featuredImage} />
             </div>
           </div>
         </div>
@@ -104,7 +104,7 @@ const About = () => {
         <div className={styles.container}>
           <h2 className={styles.sectionTitleCenter}>Our Expertise</h2>
           <p className={styles.expertiseIntro}>
-            At Edge Systems Ltd, fire safety is our primary specialization. We complement this with strategic ICT and energy solutions to create safer, smarter, and more efficient environments.
+            At Marinc Systems Ltd, fire safety is our primary specialization. We complement this with strategic ICT and energy solutions to create safer, smarter, and more efficient environments.
           </p>
           
           {/* Primary Expertise - Fire Safety */}
@@ -184,7 +184,7 @@ const About = () => {
         <div className={styles.container}>
           <h3 className={styles.ctaTitle}>Ready to Protect What Matters Most?</h3>
           <p className={styles.ctaText}>
-            At Edge Systems Ltd, we don't just install fire safety systems, we create peace of mind. Partner with us to safeguard your business, property, and people.
+            At Marinc Systems Ltd, we don't just install fire safety systems, we create peace of mind. Partner with us to safeguard your business, property, and people.
           </p>
         </div>
       </section>

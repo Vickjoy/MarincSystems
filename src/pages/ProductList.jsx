@@ -11,9 +11,9 @@ import { fetchCategories, fetchSubcategories } from '../utils/api';
 // Cache configuration
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_KEYS = {
-  CATEGORIES: 'edgeSystemsCategories',
-  SUBCATEGORIES: 'edgeSystemsSubcategories',
-  PRODUCTS: 'edgeSystemsProducts'
+  CATEGORIES: 'marincSystemsCategories',
+  SUBCATEGORIES: 'marincSystemsSubcategories',
+  PRODUCTS: 'marincSystemsProducts'
 };
 
 // Cache utility functions

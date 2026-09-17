@@ -4,7 +4,6 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './Contact.module.css';
 import NairobiImg from '../assets/Nairobi.jpg';
 import InstagramIcon from '../assets/Instagram.png';
-import LinkedInIcon from '../assets/LinkedIn.png';
 import TiktokIcon from '../assets/Tiktok.png';
 import FacebookIcon from '../assets/Facebook.png';
 import WhatsAppIcon from '../assets/whatsapp.png';
@@ -135,7 +134,7 @@ const Contact = () => {
                 <div className={styles.infoItem}>
                   <FaMapMarkerAlt className={styles.icon} />
                   <div className={styles.infoText}>
-                    Shelter house, Dai dai Road, South B, Ground Floor Apartment GF4, Nairobi<br />
+                    Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant<br />
                     43322-00100 Nairobi, Kenya
                   </div>
                 </div>
@@ -145,7 +144,7 @@ const Contact = () => {
                 <h3 className={styles.infoHeader}>Email Address:</h3>
                 <div className={styles.infoItem}>
                   <FaEnvelope className={styles.icon} />
-                  <span className={styles.infoText}>info@edgesystems.co.ke</span>
+                  <span className={styles.infoText}>info@marincsystems.co.ke</span>
                 </div>
               </div>
 
@@ -155,7 +154,7 @@ const Contact = () => {
                   <FaPhoneAlt className={styles.icon} />
                   <div className={styles.infoText}>
                     +254721247356<br />
-                    +254117320000
+                    +254113808073
                   </div>
                 </div>
               </div>
@@ -163,8 +162,8 @@ const Contact = () => {
               <div className={styles.infoBlock}>
                 <div className={styles.infoItem}>
                   <FaGlobe className={styles.icon} />
-                  <a href="http://www.edgesystems.co.ke" target="_blank" rel="noopener noreferrer" className={styles.infoText}>
-                    www.edgesystems.co.ke
+                  <a href="http://www.marincsystems.co.ke" target="_blank" rel="noopener noreferrer" className={styles.infoText}>
+                    www.marincsystems.co.ke
                   </a>
                 </div>
               </div>
@@ -238,19 +237,16 @@ const Contact = () => {
               </form>
 
               <div className={styles.socialMedia}>
-                <a href="https://www.instagram.com/edge_systems.co.ke?utm_source=qr&igsh=aHpldnhnZnRmYjM3" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
+                <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
                   <img src={InstagramIcon} alt="Instagram" className={styles.socialIconImg} />
                 </a>
-                <a href="https://www.facebook.com/edgesystemslimited" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
+                <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
                   <img src={FacebookIcon} alt="Facebook" className={styles.socialIconImg} />
                 </a>
-                <a href="https://www.tiktok.com/@edgesystems6?_t=ZM-8yCr3l8iIwn&_r=1" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
+                <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
                   <img src={TiktokIcon} alt="TikTok" className={styles.socialIconImg} />
                 </a>
-                <a href="https://www.linkedin.com/in/edge-systems-903b32222?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
-                  <img src={LinkedInIcon} alt="LinkedIn" className={styles.socialIconImg} />
-                </a>
-                <a href="https://wa.me/254117320000" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
+                <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
                   <img src={WhatsAppIcon} alt="WhatsApp" className={styles.socialIconImg} />
                 </a>
               </div>
@@ -260,14 +256,14 @@ const Contact = () => {
           {/* Map Section */}
           <div className={styles.mapSection}>
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.7715895126757!2d36.83312637404577!3d-1.3124660356533566!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f113986bb27bd%3A0x24556136c93bceca!2sEdge%20Systems%20Limited!5e0!3m2!1sen!2ske!4v1759135166203!5m2!1sen!2ske"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.7714067757215!2d36.83565!3d-1.3125806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f11003bf54ff9%3A0xe6c55eb36a15217!2sMarinc%20system%20ltd!5e0!3m2!1sen!2ske!4v1789645792222!5m2!1sen!2ske"
               width="100%"
               height="450"
               style={{ border: 0, borderRadius: '12px' }}
               allowFullScreen=""
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Edge Systems Location"
+              title="Marinc Systems Location"
             ></iframe>
           </div>
         </div>

@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from './SearchBar';
-import CompanyLogo from '../assets/Company_logo.webp';
+import CompanyLogo from '../assets/MarincLogo.jpg';
 import InstagramIcon from '../assets/Instagram.png';
-import LinkedInIcon from '../assets/LinkedIn.png';
 import TiktokIcon from '../assets/Tiktok.png';
 import FacebookIcon from '../assets/Facebook.png';
 import WhatsAppIcon from '../assets/whatsapp.png';
@@ -317,15 +316,15 @@ const Header = () => {
             <div className={styles.contactInfo}>
               <span className={styles.contactItem}>
                 <FaMapMarkerAlt />
-                Shelter house, Dai dai Road, South B, Nairobi
+                Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant
               </span>
               <span className={styles.contactItem}>
                 <FaPhoneAlt />
-                0721247356 / 0117320000
+                0721247356 / 0113808073
               </span>
               <span className={styles.contactItem}>
                 <FaEnvelope />
-                info@edgesystems.co.ke
+                info@marincsystems.co.ke
               </span>
             </div>
           </div>
@@ -333,7 +332,7 @@ const Header = () => {
 
         <div className={styles.mobileLogoRow}>
           <Link to="/">
-            <img src={CompanyLogo} alt="Edge Systems Logo" className={styles.mobileLogo} />
+            <img src={CompanyLogo} alt="Marinc Systems Logo" className={styles.mobileLogo} />
           </Link>
         </div>
 
@@ -364,15 +363,15 @@ const Header = () => {
           <div className={styles.topBarContent}>
             <span>
               <FaMapMarkerAlt style={{ marginRight: 6 }} />
-              Shelter house, Dai dai Road, South B, Ground Floor Apartment GF4, Nairobi
+              Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant
             </span>
             <span>
               <FaPhoneAlt style={{ marginRight: 6 }} />
-              0721247356 / 0117320000
+              0721247356 / 0113808073
             </span>
             <span>
               <FaEnvelope style={{ marginRight: 6 }} />
-              info@edgesystems.co.ke
+              info@marincsystems.co.ke
             </span>
           </div>
         </div>
@@ -380,7 +379,7 @@ const Header = () => {
         <div className={styles.mainHeader}>
           <div className={styles.logoContainer}>
             <Link to="/">
-              <img src={CompanyLogo} alt="Edge Systems Logo" className={styles.logo} />
+              <img src={CompanyLogo} alt="Marinc Systems Logo" className={styles.logo} />
             </Link>
           </div>
 
@@ -411,19 +410,16 @@ const Header = () => {
             </button>
 
             <div className={styles.socialMediaIcons}>
-              <a href="https://www.linkedin.com/in/edge-systems-903b32222" target="_blank" rel="noopener noreferrer">
-                <img src={LinkedInIcon} alt="LinkedIn" />
-              </a>
-              <a href="https://www.facebook.com/edgesystemslimited" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer">
                 <img src={FacebookIcon} alt="Facebook" />
               </a>
-              <a href="https://www.instagram.com/edge_systems.co.ke" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer">
                 <img src={InstagramIcon} alt="Instagram" />
               </a>
-              <a href="https://www.tiktok.com/@edgesystems6" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer">
                 <img src={TiktokIcon} alt="TikTok" />
               </a>
-              <a href="https://wa.me/254117320000" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer">
                 <img src={WhatsAppIcon} alt="WhatsApp" />
               </a>
             </div>

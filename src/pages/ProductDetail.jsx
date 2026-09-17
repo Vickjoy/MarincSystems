@@ -53,23 +53,23 @@ const ProductDetail = () => {
       autoDescription = `${brand}${name} for fire safety and security systems`;
     }
 
-    const fullDescription = `${brand}${name} — ${autoDescription}. Available in Kenya at EDGE SYSTEMS LTD.`;
+    const fullDescription = `${brand}${name} — ${autoDescription}. Available in Kenya at Marinc Systems Ltd.`;
     return fullDescription.slice(0, 155);
   };
 
   // ✅ SEO Helper: Generate page title
   const generatePageTitle = (product) => {
-    if (!product) return 'EDGE SYSTEMS LTD';
+    if (!product) return 'Marinc Systems Ltd';
     if (product.meta_title) return product.meta_title;
     
     const brand = product.brand ? `${product.brand} ` : '';
-    return `${brand}${product.name} | EDGE SYSTEMS LTD`;
+    return `${brand}${product.name} | Marinc Systems Ltd`;
   };
 
   // ✅ SEO Helper: Get canonical URL
   const getCanonicalUrl = (product) => {
     if (!product) return '';
-    return `https://edgesystems.co.ke/product/${product.slug}`;
+    return `https://marincsystems.co.ke/product/${product.slug}`;
   };
 
   // Scroll to top when component mounts or when productSlug changes
@@ -147,7 +147,7 @@ const ProductDetail = () => {
     if (!product) return;
     const message = `Hi, I'm interested in ${product.name} and would like to ask for prices`;
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/254117320000?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/254113808073?text=${encodedMessage}`;
 
     if (typeof gtag !== 'undefined') {
       gtag('event', 'whatsapp_inquiry_detail', {
@@ -176,13 +176,13 @@ const ProductDetail = () => {
 
   // Prepare SEO data
   const pageTitle = loading 
-    ? 'Loading... | EDGE SYSTEMS LTD'
+    ? 'Loading... | Marinc Systems Ltd'
     : error 
-    ? 'Error | EDGE SYSTEMS LTD'
+    ? 'Error | Marinc Systems Ltd'
     : !product 
-    ? 'Product Not Found | EDGE SYSTEMS LTD'
+    ? 'Product Not Found | Marinc Systems Ltd'
     : editMode 
-    ? `Edit ${product.name} | EDGE SYSTEMS LTD`
+    ? `Edit ${product.name} | Marinc Systems Ltd`
     : generatePageTitle(product);
 
   const metaDescription = product ? generateMetaDescription(product) : '';
@@ -251,7 +251,7 @@ const ProductDetail = () => {
       <Meta property="og:image" content={imageUrl} />
       <Meta property="og:url" content={canonicalUrl} />
       <Meta property="og:type" content="product" />
-      <Meta property="og:site_name" content="EDGE SYSTEMS LTD" />
+      <Meta property="og:site_name" content="Marinc Systems Ltd" />
       
       {/* Twitter Card tags */}
       <Meta name="twitter:card" content="summary_large_image" />
@@ -407,7 +407,7 @@ const ProductDetail = () => {
                 : "https://schema.org/OutOfStock",
               "seller": {
                 "@type": "Organization",
-                "name": "EDGE SYSTEMS LTD"
+                "name": "Marinc Systems Ltd"
               }
             }
           })}
