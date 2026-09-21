@@ -2,15 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from './SearchBar';
 import CompanyLogo from '../assets/MarincLogo.jpg';
-import InstagramIcon from '../assets/Instagram.png';
-import TiktokIcon from '../assets/Tiktok.png';
-import FacebookIcon from '../assets/Facebook.png';
-import WhatsAppIcon from '../assets/whatsapp.png';
 import styles from './Header.module.css';
 import { fetchCategories, fetchSubcategories } from '../utils/api';
 import { useCart } from '../context/CartContext';
 import CartModal from './CartModal';
-import { FaPhoneAlt, FaMapMarkerAlt, FaEnvelope, FaChevronDown, FaBars, FaTimes, FaChevronRight } from "react-icons/fa";
+import {
+  FaPhoneAlt,
+  FaMapMarkerAlt,
+  FaEnvelope,
+  FaChevronDown,
+  FaBars,
+  FaTimes,
+  FaChevronRight,
+  FaShoppingCart,
+} from 'react-icons/fa';
+import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
 
 const Header = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -58,14 +64,14 @@ const Header = () => {
     if (subcategoriesMap[categorySlug]) return;
     try {
       const subs = await fetchSubcategories(categorySlug);
-      setSubcategoriesMap(prev => ({
+      setSubcategoriesMap((prev) => ({
         ...prev,
-        [categorySlug]: Array.isArray(subs) ? subs : []
+        [categorySlug]: Array.isArray(subs) ? subs : [],
       }));
     } catch (e) {
-      setSubcategoriesMap(prev => ({
+      setSubcategoriesMap((prev) => ({
         ...prev,
-        [categorySlug]: []
+        [categorySlug]: [],
       }));
     }
   };
@@ -136,16 +142,16 @@ const Header = () => {
     if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
   };
 
-  const fireCategories = categories.filter(cat =>
-    ['fire_safety','fire','fire-safety','firesafety'].includes(String(cat.type || '').toLowerCase())
+  const fireCategories = categories.filter((cat) =>
+    ['fire_safety', 'fire', 'fire-safety', 'firesafety'].includes(String(cat.type || '').toLowerCase())
   );
 
-  const ictCategories = categories.filter(cat =>
-    ['ict','telecom','telecommunication'].includes(String(cat.type || '').toLowerCase())
+  const ictCategories = categories.filter((cat) =>
+    ['ict', 'telecom', 'telecommunication'].includes(String(cat.type || '').toLowerCase())
   );
 
-  const solarCategories = categories.filter(cat =>
-    ['solar', 'solar_solutions','solar-solutions'].includes(String(cat.type || '').toLowerCase())
+  const solarCategories = categories.filter((cat) =>
+    ['solar', 'solar_solutions', 'solar-solutions'].includes(String(cat.type || '').toLowerCase())
   );
 
   const allCategoriesCombined = [...fireCategories, ...ictCategories, ...solarCategories];
@@ -163,7 +169,7 @@ const Header = () => {
         dropdownName === 'ict' ? ictCategories :
         dropdownName === 'solar' ? solarCategories : [];
 
-      categoryList.forEach(cat => loadSubcategories(cat.slug));
+      categoryList.forEach((cat) => loadSubcategories(cat.slug));
     }
   };
 
@@ -187,15 +193,6 @@ const Header = () => {
     navigate(`/category/${categorySlug}`, { state: { selectedSubcategory: subcategorySlug } });
   };
 
-  const handleCategoryHover = (categorySlug) => {
-    setHoveredCategory(categorySlug);
-    loadSubcategories(categorySlug);
-  };
-
-  const handleCategoryLeave = () => {
-    setTimeout(() => setHoveredCategory(null), 100);
-  };
-
   const handleMobileCategoryClick = (categoryType) => {
     if (mobileExpandedCategory === categoryType) {
       setMobileExpandedCategory(null);
@@ -207,7 +204,7 @@ const Header = () => {
         categoryType === 'fire' ? fireCategories :
         categoryType === 'ict' ? ictCategories :
         categoryType === 'solar' ? solarCategories : [];
-      categoryList.forEach(cat => loadSubcategories(cat.slug));
+      categoryList.forEach((cat) => loadSubcategories(cat.slug));
     }
   };
 
@@ -231,7 +228,7 @@ const Header = () => {
     return (
       <div className={styles.megaDropdown} onMouseLeave={handleDropdownMouseLeave}>
         <div className={styles.simpleContainer}>
-          {dropdownCategories.map(cat => (
+          {dropdownCategories.map((cat) => (
             <button
               key={cat.id}
               className={styles.simpleDropdownItem}
@@ -257,7 +254,7 @@ const Header = () => {
 
       {mobileExpandedCategory === categoryType && (
         <div className={styles.mobileSubcategoryContainer}>
-          {categoryList.map(cat => {
+          {categoryList.map((cat) => {
             const categorySubcategories = subcategoriesMap[cat.slug] || [];
             const hasSubcategories = categorySubcategories.length > 0;
 
@@ -288,7 +285,7 @@ const Header = () => {
 
                 {hasSubcategories && mobileExpandedSubcategory === cat.slug && (
                   <div className={styles.mobileSubcategoryList}>
-                    {categorySubcategories.map(sub => (
+                    {categorySubcategories.map((sub) => (
                       <button
                         key={sub.id}
                         className={styles.mobileSubcategoryItem}
@@ -337,7 +334,7 @@ const Header = () => {
         </div>
 
         <div className={styles.mobileSearchRow}>
-          <button 
+          <button
             className={styles.mobileHamburger}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -349,7 +346,7 @@ const Header = () => {
           </div>
 
           <button onClick={() => setCartOpen(true)} className={styles.mobileCartButton}>
-            🛒
+            <FaShoppingCart />
             {cartItems.length > 0 && (
               <span className={styles.cartBadge}>{cartItems.length}</span>
             )}
@@ -357,7 +354,7 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Desktop Header */}
+      {/* Desktop Header — 2-tier: utility strip + single main bar (logo | nav | actions) */}
       <div className={styles.desktopHeaderLayout}>
         <div className={styles.topBar}>
           <div className={styles.topBarContent}>
@@ -373,6 +370,20 @@ const Header = () => {
               <FaEnvelope style={{ marginRight: 6 }} />
               info@marincsystems.co.ke
             </span>
+            <div className={styles.topBarSocial}>
+              <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <FaFacebookF />
+              </a>
+              <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <FaInstagram />
+              </a>
+              <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <FaTiktok />
+              </a>
+              <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                <FaWhatsapp />
+              </a>
+            </div>
           </div>
         </div>
 
@@ -382,6 +393,42 @@ const Header = () => {
               <img src={CompanyLogo} alt="Marinc Systems Logo" className={styles.logo} />
             </Link>
           </div>
+
+          <nav className={styles.navigation}>
+            <ul className={styles.navList}>
+              <li><Link to="/" className={styles.navLink}>Home</Link></li>
+
+              <li ref={fireRef} className={styles.dropdownContainer}>
+                <button
+                  className={styles.dropdownButton}
+                  onClick={() => handleDropdownToggle('fire')}
+                >
+                  Fire Safety
+                  <FaChevronDown className={styles.navChevron} />
+                </button>
+                {renderDesktopSimpleDropdown(fireCategories, openDropdown === 'fire')}
+              </li>
+
+              <li ref={ictRef} className={styles.dropdownContainer}>
+                <button
+                  className={styles.dropdownButton}
+                  onClick={() => handleDropdownToggle('ict')}
+                >
+                  ICT & Telecom
+                  <FaChevronDown className={styles.navChevron} />
+                </button>
+                {renderDesktopSimpleDropdown(ictCategories, openDropdown === 'ict')}
+              </li>
+
+              <li ref={solarRef} className={styles.dropdownContainer}>
+                <Link to="/category/solar-power-solutions" className={styles.navLink}>
+                  Solar
+                </Link>
+              </li>
+
+              <li><Link to="/contact" className={styles.navLink}>Contact Us</Link></li>
+            </ul>
+          </nav>
 
           <div className={styles.headerActions}>
             <div ref={allCategoriesRef} className={styles.allCategoriesWrapper}>
@@ -403,64 +450,13 @@ const Header = () => {
               className={styles.cartButton}
               style={{ position: 'relative' }}
             >
-              🛒
+              <FaShoppingCart />
               {cartItems.length > 0 && (
                 <span className={styles.cartBadge}>{cartItems.length}</span>
               )}
             </button>
-
-            <div className={styles.socialMediaIcons}>
-              <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer">
-                <img src={FacebookIcon} alt="Facebook" />
-              </a>
-              <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer">
-                <img src={InstagramIcon} alt="Instagram" />
-              </a>
-              <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer">
-                <img src={TiktokIcon} alt="TikTok" />
-              </a>
-              <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer">
-                <img src={WhatsAppIcon} alt="WhatsApp" />
-              </a>
-            </div>
           </div>
         </div>
-
-        <nav className={styles.navigation}>
-          <ul className={styles.navList}>
-            <li><Link to="/" className={styles.navLink}>Home</Link></li>
-
-            <li ref={fireRef} className={styles.dropdownContainer}>
-              <button
-                className={styles.dropdownButton}
-                onClick={() => handleDropdownToggle('fire')}
-              >
-                Fire Safety Products & Services
-                <FaChevronDown className={styles.navChevron} />
-              </button>
-              {renderDesktopSimpleDropdown(fireCategories, openDropdown === 'fire')}
-            </li>
-
-            <li ref={ictRef} className={styles.dropdownContainer}>
-              <button
-                className={styles.dropdownButton}
-                onClick={() => handleDropdownToggle('ict')}
-              >
-                ICT/Telecommunication Products & Services
-                <FaChevronDown className={styles.navChevron} />
-              </button>
-              {renderDesktopSimpleDropdown(ictCategories, openDropdown === 'ict')}
-            </li>
-
-            <li ref={solarRef} className={styles.dropdownContainer}>
-              <Link to="/category/solar-power-solutions" className={styles.navLink}>
-                Solar Power Solutions
-              </Link>
-            </li>
-
-            <li><Link to="/contact" className={styles.navLink}>Contact Us</Link></li>
-          </ul>
-        </nav>
       </div>
 
       {mobileMenuOpen && <div className={styles.mobileOverlay} />}
@@ -468,7 +464,7 @@ const Header = () => {
       <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
         <div className={styles.mobileMenuHeader}>
           <h3>Menu</h3>
-          <button 
+          <button
             className={styles.mobileMenuClose}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -477,8 +473,8 @@ const Header = () => {
         </div>
 
         <div className={styles.mobileMenuContent}>
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className={styles.mobileNavLink}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -488,16 +484,16 @@ const Header = () => {
           {renderMobileCategorySection(fireCategories, 'fire', 'Fire Safety Products & Services')}
           {renderMobileCategorySection(ictCategories, 'ict', 'ICT/Telecommunication Products & Services')}
 
-          <Link 
-            to="/category/solar-power-solutions" 
+          <Link
+            to="/category/solar-power-solutions"
             className={styles.mobileNavLink}
             onClick={() => setMobileMenuOpen(false)}
           >
             Solar Power Solutions
           </Link>
 
-          <Link 
-            to="/contact" 
+          <Link
+            to="/contact"
             className={styles.mobileNavLink}
             onClick={() => setMobileMenuOpen(false)}
           >

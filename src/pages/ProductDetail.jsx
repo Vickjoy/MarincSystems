@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { Title, Meta, Link } from 'react-head';
+import { FaWhatsapp } from 'react-icons/fa';
 import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './ProductDetail.module.css';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -23,6 +24,7 @@ const ProductDetail = () => {
   const [editMode, setEditMode] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [activeTab, setActiveTab] = useState('description');
 
   const [categoryName, setCategoryName] = useState('');
   const [categorySlug, setCategorySlug] = useState('');
@@ -34,7 +36,7 @@ const ProductDetail = () => {
   // ✅ SEO Helper: Generate automatic meta description
   const generateMetaDescription = (product) => {
     if (!product) return '';
-    
+
     if (product.meta_description) {
       return product.meta_description.slice(0, 155);
     }
@@ -46,8 +48,8 @@ const ProductDetail = () => {
 
     if (description && description.length > 0) {
       const firstSentence = description.split('.')[0];
-      autoDescription = firstSentence.length > 100 
-        ? firstSentence.slice(0, 100) + '...' 
+      autoDescription = firstSentence.length > 100
+        ? firstSentence.slice(0, 100) + '...'
         : firstSentence;
     } else {
       autoDescription = `${brand}${name} for fire safety and security systems`;
@@ -61,7 +63,7 @@ const ProductDetail = () => {
   const generatePageTitle = (product) => {
     if (!product) return 'Marinc Systems Ltd';
     if (product.meta_title) return product.meta_title;
-    
+
     const brand = product.brand ? `${product.brand} ` : '';
     return `${brand}${product.name} | Marinc Systems Ltd`;
   };
@@ -72,9 +74,10 @@ const ProductDetail = () => {
     return `https://marincsystems.co.ke/product/${product.slug}`;
   };
 
-  // Scroll to top when component mounts or when productSlug changes
+  // Scroll to top and reset the active tab when the product changes
   useEffect(() => {
     window.scrollTo(0, 0);
+    setActiveTab('description');
   }, [productSlug]);
 
   useEffect(() => {
@@ -175,13 +178,13 @@ const ProductDetail = () => {
   };
 
   // Prepare SEO data
-  const pageTitle = loading 
+  const pageTitle = loading
     ? 'Loading... | Marinc Systems Ltd'
-    : error 
+    : error
     ? 'Error | Marinc Systems Ltd'
-    : !product 
+    : !product
     ? 'Product Not Found | Marinc Systems Ltd'
-    : editMode 
+    : editMode
     ? `Edit ${product.name} | Marinc Systems Ltd`
     : generatePageTitle(product);
 
@@ -205,7 +208,7 @@ const ProductDetail = () => {
         <Meta name="robots" content="noindex" />
         <h2>Error Loading Product</h2>
         <p>{error}</p>
-        <button onClick={() => navigate('/')} className={styles.ctaButton}>Return to Home</button>
+        <button onClick={() => navigate('/')} className="btn btn--primary">Return to Home</button>
       </div>
     );
   }
@@ -217,14 +220,14 @@ const ProductDetail = () => {
         <Meta name="robots" content="noindex" />
         <h2>Product Not Found</h2>
         <p>The product you're looking for doesn't exist or may have been removed.</p>
-        <button onClick={() => navigate('/')} className={styles.ctaButton}>Browse Products</button>
+        <button onClick={() => navigate('/')} className="btn btn--primary">Browse Products</button>
       </div>
     );
   }
 
   if (editMode) {
     return (
-      <div style={{ padding: '2rem 0' }}>
+      <div style={{ padding: 'var(--space-6) 0' }}>
         <Title>{pageTitle}</Title>
         <Meta name="robots" content="noindex" />
         <ProductForm
@@ -236,15 +239,35 @@ const ProductDetail = () => {
     );
   }
 
+  // Only show tabs for content this product actually has
+  const tabs = [
+    product.description && { id: 'description', label: 'Description' },
+    product.features && { id: 'features', label: 'Features' },
+    product.spec_tables && product.spec_tables.length > 0 && { id: 'specifications', label: 'Specifications' },
+  ].filter(Boolean);
+
+  // If the selected tab has no content for this product, fall back to the first available
+  const currentTab = tabs.some(t => t.id === activeTab) ? activeTab : tabs[0]?.id;
+
+  const handleTabKeyDown = (e, idx) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const nextIdx = e.key === 'ArrowRight'
+      ? (idx + 1) % tabs.length
+      : (idx - 1 + tabs.length) % tabs.length;
+    setActiveTab(tabs[nextIdx].id);
+    document.getElementById(`tab-${tabs[nextIdx].id}`)?.focus();
+  };
+
   return (
     <div className={styles.container}>
       {/* ✅ DYNAMIC SEO META TAGS using react-head */}
       <Title>{pageTitle}</Title>
-      
+
       <Meta name="description" content={metaDescription} />
-      
+
       <Link rel="canonical" href={canonicalUrl} />
-      
+
       {/* Open Graph tags */}
       <Meta property="og:title" content={pageTitle} />
       <Meta property="og:description" content={metaDescription} />
@@ -252,7 +275,7 @@ const ProductDetail = () => {
       <Meta property="og:url" content={canonicalUrl} />
       <Meta property="og:type" content="product" />
       <Meta property="og:site_name" content="Marinc Systems Ltd" />
-      
+
       {/* Twitter Card tags */}
       <Meta name="twitter:card" content="summary_large_image" />
       <Meta name="twitter:title" content={pageTitle} />
@@ -268,7 +291,7 @@ const ProductDetail = () => {
 
       <section className={styles.section}>
         <div className={styles.detailContainer}>
-          {/* Left Side: Product Image and Documentation */}
+          {/* Left Side: Product Image and Documentation (sticky on desktop) */}
           <div className={styles.leftColumn}>
             <div className={styles.imageArea}>
               <img
@@ -276,7 +299,6 @@ const ProductDetail = () => {
                 alt={product.name}
                 className={styles.mainImage}
                 onClick={() => setShowLightbox(true)}
-                style={{ cursor: 'zoom-in' }}
                 onError={e => { e.target.onerror = null; e.target.src = '/placeholder.png'; }}
               />
               {showLightbox && (
@@ -285,22 +307,22 @@ const ProductDetail = () => {
                 </div>
               )}
             </div>
-            
+
             {product.documentation_url && (
               <div className={styles.documentation}>
-                <b>Documentation:</b>{" "}
+                <b>Documentation</b>
                 <a href={product.documentation_url} target="_blank" rel="noopener noreferrer">
-                  {product.documentation_label || 'View Documentation'}
+                  {product.documentation_label || 'View documentation'}
                 </a>
               </div>
             )}
           </div>
 
-          {/* Right Side: Product Info */}
+          {/* Right Side: Product Info + Tabs */}
           <div className={styles.rightColumn}>
             <div className={styles.productInfo}>
               <h1 className={styles.productTitle}>{product.name}</h1>
-              
+
               <div className={styles.ctaRow}>
                 <div className={styles.quantityArea}>
                   <label htmlFor="quantity" className={styles.label}>Quantity</label>
@@ -313,69 +335,88 @@ const ProductDetail = () => {
                     onChange={handleQuantityChange}
                   />
                 </div>
-                <button className={styles.ctaButton} onClick={handleAddToCart}>Add to Cart</button>
-                <button 
-                  className={styles.askPriceButton}
+                <button
+                  className={`btn btn--primary ${styles.ctaButton}`}
+                  onClick={handleAddToCart}
+                >
+                  Add to cart
+                </button>
+                <button
+                  className={`btn ${styles.askPriceButton}`}
                   onClick={handleWhatsAppClick}
                   aria-label={`Ask for prices on ${product.name} via WhatsApp`}
-                  title="Ask for Prices via WhatsApp"
+                  title="Ask for prices via WhatsApp"
                 >
-                  <svg className={styles.whatsappIcon} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967..."/>
-                  </svg>
-                  Ask for Price
+                  <FaWhatsapp className={styles.whatsappIcon} aria-hidden="true" />
+                  Ask for price
                 </button>
               </div>
-              
-              <div className={styles.stockStatus}>
-                IN STOCK
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Description and Features */}
-        <div className={styles.descriptionFeaturesSection}>
-          {product.description && (
-            <div className={styles.description}>
-              <b>Description:</b>
-              <p>{product.description}</p>
+              <span className={`badge badge--success ${styles.stockStatus}`}>In stock</span>
             </div>
-          )}
 
-          {product.features && (
-            <div className={styles.featuresStandalone}>
-              <b>Features:</b>
-              <ul className={styles.featureList}>
-                {renderTextList(product.features)}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Specifications Section */}
-        {product.spec_tables && product.spec_tables.length > 0 && (
-          <div className={styles.fullWidthSections}>
-            <div className={styles.specs}>
-              <b>Specifications:</b>
-              {product.spec_tables.map((table, tableIdx) => (
-                <div key={tableIdx} className={styles.specTableWrapper}>
-                  {table.title && <h4>{table.title}</h4>}
-                  <table className={styles.specTable}>
-                    <tbody>
-                      {table.rows.map((row, rowIdx) => (
-                        <tr key={rowIdx}>
-                          <td className={styles.specKey}>{row.key}</td>
-                          <td className={styles.specValue}>{row.value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {/* Tabs: Description / Features / Specifications */}
+            {tabs.length > 0 && (
+              <div className={styles.tabs}>
+                <div className={styles.tabList} role="tablist" aria-label="Product information">
+                  {tabs.map((tab, idx) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      id={`tab-${tab.id}`}
+                      aria-selected={currentTab === tab.id}
+                      aria-controls={`panel-${tab.id}`}
+                      tabIndex={currentTab === tab.id ? 0 : -1}
+                      className={`${styles.tab} ${currentTab === tab.id ? styles.tabActive : ''}`}
+                      onClick={() => setActiveTab(tab.id)}
+                      onKeyDown={(e) => handleTabKeyDown(e, idx)}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
+
+                <div
+                  className={styles.tabPanel}
+                  role="tabpanel"
+                  id={`panel-${currentTab}`}
+                  aria-labelledby={`tab-${currentTab}`}
+                >
+                  {currentTab === 'description' && (
+                    <p className={styles.descriptionText}>{product.description}</p>
+                  )}
+
+                  {currentTab === 'features' && (
+                    <ul className={styles.featureList}>
+                      {renderTextList(product.features)}
+                    </ul>
+                  )}
+
+                  {currentTab === 'specifications' && (
+                    <div>
+                      {product.spec_tables.map((table, tableIdx) => (
+                        <div key={tableIdx} className={styles.specTableWrapper}>
+                          {table.title && <h4 className={styles.specTitle}>{table.title}</h4>}
+                          <table className={styles.specTable}>
+                            <tbody>
+                              {table.rows.map((row, rowIdx) => (
+                                <tr key={rowIdx}>
+                                  <td className={styles.specKey}>{row.key}</td>
+                                  <td className={styles.specValue}>{row.value}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Related Products Carousel Section */}
         <ProductCarousel productSlug={productSlug} />
@@ -402,8 +443,8 @@ const ProductDetail = () => {
               "url": canonicalUrl,
               "priceCurrency": "KES",
               "price": product.price,
-              "availability": product.status === 'in_stock' 
-                ? "https://schema.org/InStock" 
+              "availability": product.status === 'in_stock'
+                ? "https://schema.org/InStock"
                 : "https://schema.org/OutOfStock",
               "seller": {
                 "@type": "Organization",

@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ShopperAuthProvider } from './context/ShopperAuthContext';
 import { HeadProvider } from 'react-head';
 import './index.css';
+import './styles/design-system.css';
 
 const root = createRoot(document.getElementById('root'));
 

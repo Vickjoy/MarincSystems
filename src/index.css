@@ -15,10 +15,10 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-body);
   line-height: 1.6;
-  background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-teal-dark) 100%);
-  color: var(--color-white);
+  background: var(--color-bg);
+  color: var(--color-body);
   min-height: 100vh;
 }
 

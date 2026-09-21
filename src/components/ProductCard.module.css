@@ -1,10 +1,12 @@
 .card {
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
-  border-radius: 8px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -13,17 +15,15 @@
   min-height: 360px;
 }
 
-.card:hover, .card:focus {
+.card:hover,
+.card:focus-visible {
   transform: translateY(-4px);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-md);
   z-index: 10;
-  border-color: #e2e8f0;
 }
 
-.card:focus {
-  outline: 2px solid #3b82f6;
+.card:focus-visible {
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -33,77 +33,68 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f8fafc;
+  background: var(--color-bg-subtle);
   overflow: hidden;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .image {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-base);
 }
 
 .card:hover .image {
-  transform: scale(1.02);
+  transform: scale(1.03);
 }
 
 .content {
   width: 100%;
-  padding: 1.5rem;
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
 .title {
+  font-family: var(--font-body);
   font-weight: 600;
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   line-height: 1.4;
-  margin: 0 0 0.75rem 0;
-  color: #1f2937;
+  margin: 0 0 var(--space-3) 0;
+  color: var(--color-ink);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
 .price {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #1DCD9F;
-  margin-bottom: 0.75rem;
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: var(--space-3);
 }
 
+/* Layout-only; colour/shape come from the global .badge .badge--success */
 .stockStatus {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  color: #10b981;
-  background: #f0fdf4;
-  padding: 0.25rem 0.65rem;
-  border-radius: 12px;
-  font-weight: 500;
-  width: fit-content;
-  margin-bottom: 0.75rem;
-  border: 1px solid #d1fae5;
+  align-self: flex-start;
+  margin-bottom: var(--space-4);
 }
 
-.stockStatus::before {
-  content: '●';
-  font-size: 0.6rem;
-}
-
-.addToCartLink {
-  display: inline-block;
-  color: #6096B4;
-  font-weight: 600;
-  font-size: 0.95rem;
-  text-decoration: none;
-  cursor: pointer;
+/* Layout-only; colour/shape come from the global .btn .btn--primary.
+   Prefixed with .card so it always beats .btn's padding regardless of CSS order. */
+.addToCartBtn {
   margin-top: auto;
+  width: 100%;
+}
+
+.card .addToCartBtn {
+  padding: 0.65rem 1.25rem;
+  font-size: var(--text-sm);
 }
 
 /* Responsive Design */
@@ -112,21 +103,17 @@
     width: 260px;
     min-height: 340px;
   }
-  
+
   .imageWrapper {
     height: 180px;
   }
-  
+
   .content {
-    padding: 1.25rem;
-  }
-  
-  .title {
-    font-size: 1rem;
+    padding: var(--space-4);
   }
 
-  .addToCartLink {
-    font-size: 0.9rem;
+  .title {
+    font-size: var(--text-base);
   }
 }
 
@@ -135,21 +122,13 @@
     width: 240px;
     min-height: 320px;
   }
-  
+
   .imageWrapper {
     height: 160px;
   }
-  
-  .content {
-    padding: 1rem;
-  }
-  
+
   .title {
     font-size: 0.95rem;
-  }
-
-  .addToCartLink {
-    font-size: 0.85rem;
   }
 }
 
@@ -160,20 +139,29 @@
     min-height: 340px;
     margin: 0 auto;
   }
-  
+
   .imageWrapper {
     height: 180px;
   }
-  
+
   .content {
-    padding: 1.25rem;
-  }
-  
-  .title {
-    font-size: 1rem;
+    padding: var(--space-4);
   }
 
-  .addToCartLink {
-    font-size: 0.9rem;
+  .title {
+    font-size: var(--text-base);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .image {
+    transition: none;
+  }
+
+  .card:hover,
+  .card:focus-visible,
+  .card:hover .image {
+    transform: none;
   }
 }
