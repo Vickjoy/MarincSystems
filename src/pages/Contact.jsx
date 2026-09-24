@@ -2,45 +2,8 @@ import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './Contact.module.css';
-import NairobiImg from '../assets/Nairobi.jpg';
-import InstagramIcon from '../assets/Instagram.png';
-import TiktokIcon from '../assets/Tiktok.png';
-import FacebookIcon from '../assets/Facebook.png';
-import WhatsAppIcon from '../assets/whatsapp.png';
-import { FaPhoneAlt, FaEnvelope, FaGlobe, FaMapMarkerAlt } from 'react-icons/fa';
-
-const heroStyle = {
-  width: '100%',
-  height: '260px',
-  backgroundImage: `url(${NairobiImg})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: '2rem',
-};
-
-const overlayStyle = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  background: 'rgba(24, 28, 32, 0.45)',
-  zIndex: 1,
-};
-
-const heroTextStyle = {
-  position: 'relative',
-  zIndex: 2,
-  color: '#fff',
-  fontSize: '2.5rem',
-  fontWeight: 800,
-  textShadow: '0 4px 24px rgba(0,0,0,0.25)',
-  letterSpacing: '0.04em',
-};
+import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { FaInstagram, FaFacebookF, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
 
 const API_URL = `${API_BASE_URL}/api`;
 
@@ -48,223 +11,215 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    comment: ''
+    subject: '',
+    comment: '',
   });
-  
+
   const [submitStatus, setSubmitStatus] = useState({
     loading: false,
     success: false,
-    error: null
+    error: null,
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     setSubmitStatus({ loading: true, success: false, error: null });
-    
+
     try {
-      const response = await fetch(`${API_BASE_URL}/contact/`, {
+      const response = await fetch(`${API_URL}/contact/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
+        headers: { 'Content-Type': 'application/json' },
+        // Note: `subject` is sent along with the rest of the payload. If the
+        // backend serializer doesn't yet accept it, it will simply be ignored
+        // by DRF rather than causing an error — flag to wire it up server-side
+        // when ready.
+        body: JSON.stringify(formData),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to send message');
       }
-      
-      // Success!
-      setSubmitStatus({ 
-        loading: false, 
-        success: true, 
-        error: null 
-      });
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        comment: ''
-      });
-      
-      // Clear success message after 5 seconds
+
+      setSubmitStatus({ loading: false, success: true, error: null });
+      setFormData({ name: '', email: '', subject: '', comment: '' });
+
       setTimeout(() => {
-        setSubmitStatus(prev => ({ ...prev, success: false }));
+        setSubmitStatus((prev) => ({ ...prev, success: false }));
       }, 5000);
-      
     } catch (error) {
       console.error('Error submitting form:', error);
-      setSubmitStatus({ 
-        loading: false, 
-        success: false, 
-        error: error.message 
-      });
+      setSubmitStatus({ loading: false, success: false, error: error.message });
     }
   };
 
   return (
     <div className={styles.contactPage}>
       <Breadcrumbs crumbs={[{ label: 'Home', path: '/' }, { label: 'Contact Us', path: '/contact' }]} />
-      <div style={heroStyle}>
-        <div style={overlayStyle}></div>
-        <div style={heroTextStyle}>Contact Us</div>
+
+      {/* Map-first hero */}
+      <div className={styles.mapHero}>
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.7714067757215!2d36.83565!3d-1.3125806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f11003bf54ff9%3A0xe6c55eb36a15217!2sMarinc%20system%20ltd!5e0!3m2!1sen!2ske!4v1789645792222!5m2!1sen!2ske"
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen=""
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Marinc Systems Location"
+        />
       </div>
+
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.headerText}>
-            Visit our store or talk to us on phone, email or social media
+            <h1 className={styles.pageTitle}>Get in Touch</h1>
+            <p className={styles.pageSubtitle}>Visit us, call, email, or send a message below</p>
           </div>
+
           <div className={styles.contentGrid}>
-            {/* Left Grid: Contact Information */}
-            <div className={styles.leftGrid}>
-              <div className={styles.infoBlock}>
-                <h3 className={styles.infoHeader}>Physical Address:</h3>
-                <div className={styles.infoItem}>
-                  <FaMapMarkerAlt className={styles.icon} />
-                  <div className={styles.infoText}>
-                    Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant<br />
-                    43322-00100 Nairobi, Kenya
-                  </div>
-                </div>
-              </div>
+            {/* Form — wider, left */}
+            <div className={styles.formColumn}>
+              <h2 className={styles.formHeader}>Send us a message</h2>
 
-              <div className={styles.infoBlock}>
-                <h3 className={styles.infoHeader}>Email Address:</h3>
-                <div className={styles.infoItem}>
-                  <FaEnvelope className={styles.icon} />
-                  <span className={styles.infoText}>info@marincsystems.co.ke</span>
-                </div>
-              </div>
-
-              <div className={styles.infoBlock}>
-                <h3 className={styles.infoHeader}>Phone Numbers:</h3>
-                <div className={styles.infoItem}>
-                  <FaPhoneAlt className={styles.icon} />
-                  <div className={styles.infoText}>
-                    +254721247356<br />
-                    +254113808073
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.infoBlock}>
-                <div className={styles.infoItem}>
-                  <FaGlobe className={styles.icon} />
-                  <a href="http://www.marincsystems.co.ke" target="_blank" rel="noopener noreferrer" className={styles.infoText}>
-                    www.marincsystems.co.ke
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Grid: Contact Form */}
-            <div className={styles.rightGrid}>
-              <h3 className={styles.formHeader}>Send us a message</h3>
-              
-              {/* Success Message */}
               {submitStatus.success && (
                 <div className={styles.successMessage}>
-                  ✓ Your message has been sent successfully! We'll get back to you soon.
+                  ✓ Your message has been sent successfully. We'll get back to you soon.
                 </div>
               )}
-              
-              {/* Error Message */}
+
               {submitStatus.error && (
-                <div className={styles.errorMessage}>
-                  ✗ {submitStatus.error}
-                </div>
+                <div className={styles.errorMessage}>✗ {submitStatus.error}</div>
               )}
-              
+
               <form onSubmit={handleSubmit} className={styles.contactForm}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="name" className={styles.label}>Name</label>
+                <div className={styles.formRow}>
+                  <div className="field">
+                    <label htmlFor="name">Name</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      disabled={submitStatus.loading}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="email">Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      disabled={submitStatus.loading}
+                    />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label htmlFor="subject">Subject</label>
                   <input
                     type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
                     onChange={handleInputChange}
-                    className={styles.input}
-                    required
+                    placeholder="e.g. Fire alarm installation quote"
                     disabled={submitStatus.loading}
                   />
                 </div>
-                <div className={styles.formGroup}>
-                  <label htmlFor="email" className={styles.label}>Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={styles.input}
-                    required
-                    disabled={submitStatus.loading}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label htmlFor="comment" className={styles.label}>Comment</label>
+
+                <div className="field">
+                  <label htmlFor="comment">Message</label>
                   <textarea
                     id="comment"
                     name="comment"
                     value={formData.comment}
                     onChange={handleInputChange}
-                    className={styles.textarea}
                     rows="5"
                     required
                     disabled={submitStatus.loading}
-                  ></textarea>
+                  />
                 </div>
-                <button 
-                  type="submit" 
-                  className={styles.submitButton}
-                  disabled={submitStatus.loading}
-                >
-                  {submitStatus.loading ? 'Sending...' : 'Submit'}
+
+                <button type="submit" className="btn btn--primary" disabled={submitStatus.loading}>
+                  {submitStatus.loading ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
+            </div>
 
-              <div className={styles.socialMedia}>
-                <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
-                  <img src={InstagramIcon} alt="Instagram" className={styles.socialIconImg} />
+            {/* Info cards — narrower, right */}
+            <div className={styles.infoColumn}>
+              <div className={styles.infoCard}>
+                <FaMapMarkerAlt className={styles.infoIcon} />
+                <div>
+                  <h3 className={styles.infoLabel}>Mombasa (HQ)</h3>
+                  <p className={styles.infoText}>
+                    Said Bin Seif Building, Meru Road, Opposite Fantasy Restaurant
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <FaMapMarkerAlt className={styles.infoIcon} />
+                <div>
+                  <h3 className={styles.infoLabel}>Nairobi</h3>
+                  <p className={styles.infoText}>
+                    Shelter House, Dai Dai Road, South B, Ground Floor Apartment GF4
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <FaPhoneAlt className={styles.infoIcon} />
+                <div>
+                  <h3 className={styles.infoLabel}>Phone</h3>
+                  <p className={styles.infoText}>+254 721 247 356<br />+254 113 808 073</p>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <FaEnvelope className={styles.infoIcon} />
+                <div>
+                  <h3 className={styles.infoLabel}>Email</h3>
+                  <p className={styles.infoText}>info@marincsystems.co.ke</p>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <FaClock className={styles.infoIcon} />
+                <div>
+                  <h3 className={styles.infoLabel}>Business Hours</h3>
+                  <p className={styles.infoText}>Mon–Fri, 8am–5pm<br />24/7 emergency call-out</p>
+                </div>
+              </div>
+
+              <div className={styles.socialRow}>
+                <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                  <FaFacebookF />
                 </a>
-                <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
-                  <img src={FacebookIcon} alt="Facebook" className={styles.socialIconImg} />
+                <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                  <FaInstagram />
                 </a>
-                <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
-                  <img src={TiktokIcon} alt="TikTok" className={styles.socialIconImg} />
+                <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                  <FaTiktok />
                 </a>
-                <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer" className={styles.socialIcon}>
-                  <img src={WhatsAppIcon} alt="WhatsApp" className={styles.socialIconImg} />
+                <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                  <FaWhatsapp />
                 </a>
               </div>
             </div>
-          </div>
-
-          {/* Map Section */}
-          <div className={styles.mapSection}>
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.7714067757215!2d36.83565!3d-1.3125806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f11003bf54ff9%3A0xe6c55eb36a15217!2sMarinc%20system%20ltd!5e0!3m2!1sen!2ske!4v1789645792222!5m2!1sen!2ske"
-              width="100%"
-              height="450"
-              style={{ border: 0, borderRadius: '12px' }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Marinc Systems Location"
-            ></iframe>
           </div>
         </div>
       </section>

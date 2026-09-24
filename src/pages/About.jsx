@@ -2,179 +2,147 @@ import React from 'react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './About.module.css';
 import AboutOffice from '../assets/AboutOffice.jpeg';
-import AboutCamera from '../assets/AboutCamera.jpeg';
 import AboutFire from '../assets/AboutFire.jpeg';
 import AboutCabling from '../assets/AboutCabling.jpeg';
+
+const values = [
+  { number: '01', title: 'Safety First', text: 'Protecting lives and property is at the heart of everything we do.' },
+  { number: '02', title: 'Integrity', text: 'We operate with honesty, transparency, and ethical standards.' },
+  { number: '03', title: 'Innovation', text: 'We embrace proven, cost-effective technology suited to real client needs.' },
+  { number: '04', title: 'Excellence', text: 'We deliver quality workmanship and dependable after-sales service.' },
+  { number: '05', title: 'Customer Focus', text: 'Every solution is designed around what actually works for the client.' },
+];
+
+const differentiators = [
+  { title: 'Authorized EATON Distributor', text: 'Certified to sell, commission and maintain EATON fire and voice alarm systems.' },
+  { title: 'In-House Installation', text: 'Most installations are carried out directly by our own engineers, each project assigned a dedicated project manager from concept to handover.' },
+  { title: '24-Hour Response', text: 'A standing call-out procedure with telephonic response within the hour and on-site attendance within 24 hours.' },
+  { title: 'Trusted by Established Organizations', text: 'Our work spans hospitality, insurance, mining, and public institutions across Kenya.' },
+];
+
+const clients = [
+  'Resolution Insurance', 'AAR Insurance', 'DeLaRue', 'Sarova Whitesands',
+  'Sarova Woodlands', 'IEBC', 'Base Titanium', 'MasterPower Systems',
+];
+
+const techPartners = ['EATON', 'Cisco', 'Alcatel-Lucent', 'Avaya', 'Ubiquiti', 'Siemon', 'D-Link'];
 
 const About = () => {
   return (
     <div className={styles.aboutPage}>
       <Breadcrumbs crumbs={[{ label: 'Home', path: '/' }, { label: 'About Us', path: '/about' }]} />
-      
-      {/* Hero Section */}
-      <section className={styles.hero}>
+
+      {/* Full-bleed image hero */}
+      <section className={styles.hero} style={{ backgroundImage: `url(${AboutOffice})` }}>
+        <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            About <span className={styles.highlight}>Marinc Systems Ltd</span>
-          </h1>
-          <p className={styles.heroSubtitle}>
-            Kenya's Trusted Partner in Fire Safety & Integrated Solutions
-          </p>
+          <h1 className={styles.heroTitle}>About Marinc Systems Ltd</h1>
+          <p className={styles.heroSubtitle}>Simplifying Fire, Security & ICT Solutions Across Kenya</p>
         </div>
       </section>
 
-      {/* Who We Are Section */}
-      <section className={styles.whoWeAre}>
-        <div className={styles.container}>
-          <div className={styles.contentSplit}>
-            <div className={styles.textContent}>
-              <h2 className={styles.sectionTitle}>Who We Are</h2>
-              <p className={styles.bodyText}>
-                <strong>Marinc Systems Ltd</strong> is a leading Kenyan company specializing primarily in fire safety systems and solutions. Our core strength lies in delivering comprehensive Eaton fire alarm and detection systems, including advanced fire panels, detectors, alarms, and compliance-driven fire protection services.
-              </p>
-              <p className={styles.bodyText}>
-                We play a vital role in safeguarding businesses, institutions, and properties across Kenya by providing end-to-end fire safety solutions from initial design and professional installation to ongoing maintenance and emergency response readiness.
-              </p>
-            </div>
-            <div className={styles.imageContent}>
-              <img src={AboutOffice} alt="Marinc Systems Office" className={styles.featuredImage} />
-            </div>
+      {/* Single centered intro */}
+      <section className={styles.intro}>
+        <p className={styles.introText}>
+          Established in August 2016, Marinc Systems Ltd is a quality-driven dealer in electricals, IT
+          and fire equipment, staffed by professionals with genuine hands-on experience. We design and
+          install integrated fire and security systems from initial concept through to final handover,
+          backed by dependable after-sales support.
+        </p>
+      </section>
+
+      {/* Zigzag editorial blocks */}
+      <section className={styles.zigzagSection}>
+        <div className={styles.zigzagBlock}>
+          <div className={styles.zigzagImage}>
+            <img src={AboutFire} alt="Fire safety systems installation" />
+          </div>
+          <div className={styles.zigzagText}>
+            <span className={styles.eyebrow}>What We Deliver</span>
+            <h2 className={styles.zigzagTitle}>Fire Detection, Security & Connectivity</h2>
+            <p className={styles.zigzagBody}>
+              As an authorized EATON distributor, we supply, commission and maintain addressable fire
+              alarm and voice evacuation systems alongside firefighting equipment. Alongside this, we
+              design and install structured cabling, CCTV and IP surveillance, wireless networks, and
+              unified communications built on Cisco and Alcatel-Lucent platforms — connecting a building's
+              safety systems and its data network under one roof.
+            </p>
+          </div>
+        </div>
+
+        <div className={`${styles.zigzagBlock} ${styles.reverse}`}>
+          <div className={styles.zigzagImage}>
+            <img src={AboutCabling} alt="Structured cabling and network installation" />
+          </div>
+          <div className={styles.zigzagText}>
+            <span className={styles.eyebrow}>Our Approach</span>
+            <h2 className={styles.zigzagTitle}>In-House, Start to Finish</h2>
+            <p className={styles.zigzagBody}>
+              Most of our installations are carried out directly by our own engineers rather than
+              subcontracted out, with every project assigned a dedicated manager from concept to
+              handover. Once a system is live, our standard call-out procedure guarantees a telephonic
+              response within the hour and an on-site technician within 24 hours — supported by planned
+              preventive maintenance, spares, and system refurbishment.
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.zigzagBlock}>
+          <div className={styles.zigzagImage}>
+            <img src={AboutOffice} alt="Marinc Systems office" />
+          </div>
+          <div className={styles.zigzagText}>
+            <span className={styles.eyebrow}>Our Mission</span>
+            <ul className={styles.missionList}>
+              <li>Deliver quality, innovative, cost-effective solutions through continuous improvement.</li>
+              <li>Ensure customer satisfaction through committed, professional service.</li>
+              <li>Exceed expectations on every telecommunications and networking project with the best available technology.</li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* Mission & Vision */}
-      <section className={styles.missionVision}>
-        <div className={styles.container}>
-          <div className={styles.mvGrid}>
-            <div className={styles.mvCard}>
-              <div className={styles.mvIcon}>🎯</div>
-              <h3 className={styles.mvTitle}>Our Mission</h3>
-              <p className={styles.mvText}>
-                To save lives, protect property, and create safer communities through the delivery of modern, reliable fire safety systems. We are committed to ensuring every client receives cutting-edge solutions that meet international standards and local compliance requirements.
-              </p>
+      {/* Values — horizontal numbered timeline */}
+      <section className={styles.valuesSection}>
+        <div className={styles.sectionHeadingCenter}>
+          <span className={styles.eyebrow}>Our Values</span>
+          <h2 className={styles.sectionTitle}>What Guides Our Work</h2>
+        </div>
+        <div className={styles.timeline}>
+          {values.map((v, idx) => (
+            <div key={v.number} className={styles.timelineItem}>
+              <span className={styles.timelineNumber}>{v.number}</span>
+              <h4 className={styles.timelineTitle}>{v.title}</h4>
+              <p className={styles.timelineText}>{v.text}</p>
+              {idx < values.length - 1 && <span className={styles.timelineConnector} />}
             </div>
-            <div className={styles.mvCard}>
-              <div className={styles.mvIcon}>🔥</div>
-              <h3 className={styles.mvTitle}>Our Vision</h3>
-              <p className={styles.mvText}>
-                To be Kenya's most trusted fire safety and integrated solutions partner, recognized for our unwavering commitment to excellence, innovation, and customer-focused service across all sectors.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Core Values */}
-      <section className={styles.values}>
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitleCenter}>Our Core Values</h2>
-          <div className={styles.valuesGrid}>
-            <div className={styles.valueItem}>
-              <div className={styles.valueNumber}>01</div>
-              <h4 className={styles.valueTitle}>Safety First</h4>
-              <p className={styles.valueText}>Protecting lives and property is at the heart of everything we do.</p>
-            </div>
-            <div className={styles.valueItem}>
-              <div className={styles.valueNumber}>02</div>
-              <h4 className={styles.valueTitle}>Integrity</h4>
-              <p className={styles.valueText}>We operate with honesty, transparency, and ethical standards.</p>
-            </div>
-            <div className={styles.valueItem}>
-              <div className={styles.valueNumber}>03</div>
-              <h4 className={styles.valueTitle}>Innovation</h4>
-              <p className={styles.valueText}>We embrace cutting-edge technology and forward-thinking solutions.</p>
-            </div>
-            <div className={styles.valueItem}>
-              <div className={styles.valueNumber}>04</div>
-              <h4 className={styles.valueTitle}>Excellence</h4>
-              <p className={styles.valueText}>We deliver quality workmanship and exceptional service every time.</p>
-            </div>
-            <div className={styles.valueItem}>
-              <div className={styles.valueNumber}>05</div>
-              <h4 className={styles.valueTitle}>Customer Focus</h4>
-              <p className={styles.valueText}>Your safety needs and satisfaction drive our commitment.</p>
-            </div>
-          </div>
+      {/* Differentiators — kept as its own distinct section */}
+      <section className={styles.diffSection}>
+        <div className={styles.sectionHeadingCenter}>
+          <span className={styles.eyebrow}>Why Marinc</span>
+          <h2 className={styles.sectionTitle}>What Sets Us Apart</h2>
         </div>
-      </section>
-
-      {/* Our Expertise */}
-      <section className={styles.expertise}>
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitleCenter}>Our Expertise</h2>
-          <p className={styles.expertiseIntro}>
-            At Marinc Systems Ltd, fire safety is our primary specialization. We complement this with strategic ICT and energy solutions to create safer, smarter, and more efficient environments.
-          </p>
-          
-          {/* Primary Expertise - Fire Safety */}
-          <div className={styles.primaryExpertise}>
-            <div className={styles.primaryContent}>
-              <span className={styles.badge}>Core Specialty</span>
-              <h3 className={styles.primaryTitle}>Fire Safety Systems</h3>
-              <ul className={styles.expertiseList}>
-                <li>Advanced Fire Alarm & Detection Systems</li>
-                <li>Fire Panels, Detectors & Sounders</li>
-                <li>Emergency Response Systems</li>
-                <li>Compliance & Safety Audits</li>
-                <li>Installation, Maintenance & Support</li>
-              </ul>
+        <div className={styles.diffGrid}>
+          {differentiators.map((d) => (
+            <div key={d.title} className={styles.diffCard}>
+              <h4 className={styles.diffTitle}>{d.title}</h4>
+              <p className={styles.diffText}>{d.text}</p>
             </div>
-            <div className={styles.primaryImage}>
-              <img src={AboutFire} alt="Fire Safety Systems" />
-            </div>
-          </div>
-
-          {/* Supporting Services */}
-          <div className={styles.supportingServices}>
-            <div className={styles.serviceCard}>
-              <img src={AboutCamera} alt="CCTV Surveillance" className={styles.serviceImage} />
-              <div className={styles.serviceContent}>
-                <h4 className={styles.serviceTitle}>CCTV & IP Surveillance</h4>
-                <p className={styles.serviceDesc}>Enhanced security monitoring to complement fire safety measures.</p>
-              </div>
-            </div>
-            <div className={styles.serviceCard}>
-              <img src={AboutCabling} alt="Structured Cabling" className={styles.serviceImage} />
-              <div className={styles.serviceContent}>
-                <h4 className={styles.serviceTitle}>Structured Cabling & VoIP</h4>
-                <p className={styles.serviceDesc}>Robust communication infrastructure for seamless connectivity.</p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
 
-      {/* What Sets Us Apart */}
-      <section className={styles.differentiators}>
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitleCenter}>What Sets Us Apart</h2>
-          <div className={styles.differentiatorGrid}>
-            <div className={styles.diffCard}>
-              <div className={styles.diffIcon}>🌍</div>
-              <h4 className={styles.diffTitle}>Global Partnerships</h4>
-              <p className={styles.diffText}>Strategic alliances with leading international fire safety technology providers.</p>
-            </div>
-            <div className={styles.diffCard}>
-              <div className={styles.diffIcon}>👨‍🔧</div>
-              <h4 className={styles.diffTitle}>Certified Technicians</h4>
-              <p className={styles.diffText}>Highly trained and certified professionals ensuring quality installations.</p>
-            </div>
-            <div className={styles.diffCard}>
-              <div className={styles.diffIcon}>✅</div>
-              <h4 className={styles.diffTitle}>Compliance Commitment</h4>
-              <p className={styles.diffText}>All solutions meet local regulations and international fire safety standards.</p>
-            </div>
-            <div className={styles.diffCard}>
-              <div className={styles.diffIcon}>🤝</div>
-              <h4 className={styles.diffTitle}>Customer Trust</h4>
-              <p className={styles.diffText}>Building lasting relationships through reliability, transparency, and excellence.</p>
-            </div>
-            <div className={styles.diffCard}>
-              <div className={styles.diffIcon}>⚡</div>
-              <h4 className={styles.diffTitle}>Rapid Response</h4>
-              <p className={styles.diffText}>24/7 support and emergency response capabilities when you need us most.</p>
-            </div>
+        <div className={styles.trustStrip}>
+          <p className={styles.trustLabel}>Trusted by organizations including</p>
+          <div className={styles.pillRow}>
+            {clients.map((c) => <span key={c} className={styles.trustPill}>{c}</span>)}
+          </div>
+          <p className={styles.trustLabel}>Technology partners</p>
+          <div className={styles.pillRow}>
+            {techPartners.map((t) => <span key={t} className={styles.trustPill}>{t}</span>)}
           </div>
         </div>
       </section>
@@ -182,10 +150,12 @@ const About = () => {
       {/* Closing CTA */}
       <section className={styles.cta}>
         <div className={styles.container}>
-          <h3 className={styles.ctaTitle}>Ready to Protect What Matters Most?</h3>
+          <h3 className={styles.ctaTitle}>Let's Build Something Great Together</h3>
           <p className={styles.ctaText}>
-            At Marinc Systems Ltd, we don't just install fire safety systems, we create peace of mind. Partner with us to safeguard your business, property, and people.
+            Whether it's fire safety, security, or connectivity — partner with Marinc Systems for
+            solutions designed and supported from concept to handover.
           </p>
+          <a href="/contact" className="btn btn--primary">Get in Touch</a>
         </div>
       </section>
     </div>
