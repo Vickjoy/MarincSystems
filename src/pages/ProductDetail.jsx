@@ -84,7 +84,7 @@ const ProductDetail = () => {
     const fetchProductDetails = async () => {
       try {
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        const response = await fetch(`${API_BASE_URL}/products/${productSlug}/`, { headers });
+        const response = await fetch(`${API_URL}/products/${productSlug}/`, { headers });
         if (!response.ok) {
           throw new Error(response.status === 404 ? 'Product not found' : 'Failed to fetch product');
         }
@@ -112,7 +112,7 @@ const ProductDetail = () => {
 
   const handleEditSubmit = async (formData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/${productSlug}/`, {
+      const response = await fetch(`${API_URL}/products/${productSlug}/`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
