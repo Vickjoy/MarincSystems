@@ -3,7 +3,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './About.module.css';
 import AboutOffice from '../assets/AboutOffice.jpeg';
 import AboutFire from '../assets/AboutFire.jpeg';
-import AboutCabling from '../assets/AboutCabling.jpeg';
+import AboutCabling from '../assets/AboutCabling.jpg';
 
 const values = [
   { number: '01', title: 'Safety First', text: 'Protecting lives and property is at the heart of everything we do.' },

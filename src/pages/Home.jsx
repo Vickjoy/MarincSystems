@@ -23,13 +23,12 @@ import BImage from '../assets/B.png';
 
 // Service images
 import FireAlarmImage from '../assets/FireAlarm.jpeg';
-import SolarImage from '../assets/Solar.jpeg';
-import VoIPImage from '../assets/VoIP.jpeg';
-import IPImage from '../assets/IP.jpeg';
-import StructuredCablingImage from '../assets/StructuredCabling.jpeg';
+import VoIPImage from '../assets/VoIP.jpg';
+import IPImage from '../assets/IP.jpg';
+import StructuredCablingImage from '../assets/StructuredCabling.jpg';
 
 // "Why Marinc" image
-import WhyImage from '../assets/WHY.jpg';
+import WhyImage from '../assets/WHY.jpeg';
 
 // Defined outside the component so the reference is stable (no effect re-runs)
 const permanentSlides = [
@@ -38,33 +37,36 @@ const permanentSlides = [
     displayMode: 'standard',
     subtitle: 'Protect What Matters Most',
     title: 'Advanced Fire Alarm & Detection Systems',
-    description: 'Reliable fire panels, detectors, and alarms designed for fast detection, instant alerts, and full safety control ensuring complete fire protection and compliance.',
+    description:
+      'Detect threats early with reliable fire panels, detectors, alarms, and emergency systems designed for fast response and dependable protection.',
     images: [FireImage, EImage, FImage],
     link: '/category/addressable-fire-alarm-detection-systems',
     bgClass: 'heroSlide1',
-    buttonText: 'Explore Products',
+    buttonText: 'Explore Fire Safety',
   },
   {
     id: 2,
     displayMode: 'standard',
-    subtitle: 'Power Your Digital Infrastructure',
-    title: 'Enterprise Networking Solutions',
-    description: 'High-performance access points, routers, and switches built for secure, scalable, and reliable connectivity. Designed to support seamless communication and business continuity.',
+    subtitle: 'Connect. Communicate. Perform.',
+    title: 'Reliable Network & Connectivity Solutions',
+    description:
+      'Build a faster, more secure network with enterprise-grade access points, switches, and connectivity solutions designed to keep your business connected.',
     images: [UbiquitiProductImage, CiscoProductImage, GImage],
     link: '/category/ubiquiti-products',
     bgClass: 'heroSlide2',
-    buttonText: 'Explore Products',
+    buttonText: 'Explore Networking',
   },
   {
     id: 3,
     displayMode: 'standard',
-    subtitle: 'Built for Performance & Reliability',
-    title: 'Structured Cabling Infrastructure',
-    description: 'Certified Cat6, Cat6a, and fiber optic cabling systems engineered for maximum speed, stability, and scalability ensuring your network is future-ready and dependable.',
+    subtitle: 'Infrastructure Built for the Future',
+    title: 'Structured Cabling & Fiber Solutions',
+    description:
+      'Create a dependable network foundation with quality Cat6, Cat6A, and fiber optic cabling engineered for speed, stability, and scalability.',
     images: [AImage, BImage],
     link: '/category/giganet-products',
     bgClass: 'heroSlide3',
-    buttonText: 'Explore Products',
+    buttonText: 'Explore Cabling',
   },
 ];
 
@@ -79,36 +81,33 @@ const Home = () => {
       id: 1,
       image: FireAlarmImage,
       title: 'Fire Alarm & Detection',
-      description: 'Fire safety systems with smoke detectors, heat sensors, and panels. Ensure fast detection, real-time alerts, regulatory compliance, and secure operations.',
+      description:
+        'Fire safety systems with smoke detectors, heat sensors, and panels. Ensure fast detection, real-time alerts, regulatory compliance, and secure operations.',
       link: '/category/addressable-fire-alarm-detection-systems',
     },
     {
       id: 2,
       image: StructuredCablingImage,
       title: 'Structured Cabling',
-      description: 'Fiber optics, Cat6/Cat6a cabling, and management systems. Enable seamless communication, high-speed transmission, scalability, and reduced downtime for businesses.',
+      description:
+        'Fiber optics, Cat6/Cat6a cabling, and management systems. Enable seamless communication, high-speed transmission, scalability, and reduced downtime for businesses.',
       link: '/category/giganet-products',
     },
     {
       id: 3,
       image: IPImage,
       title: 'CCTV/IP Camera',
-      description: 'HD IP cameras with night vision, motion detection, and cloud storage. Provide continuous monitoring, analytics, and asset protection around-the-clock.',
+      description:
+        'HD IP cameras with night vision, motion detection, and cloud storage. Provide continuous monitoring, analytics, and asset protection around-the-clock.',
       link: '/category/hikvision',
     },
     {
       id: 4,
       image: VoIPImage,
       title: 'VoIP & Telephony',
-      description: 'VoIP systems with call routing, conferencing, voicemail-to-email, and mobile integration. Improve collaboration, cut costs, and scale communication efficiently.',
+      description:
+        'VoIP systems with call routing, conferencing, voicemail-to-email, and mobile integration. Improve collaboration, cut costs, and scale communication efficiently.',
       link: '/category/alcatel-lucent-products',
-    },
-    {
-      id: 5,
-      image: SolarImage,
-      title: 'Solar Energy & Solutions',
-      description: 'Solar panels, batteries, and inverters delivering renewable power. Reduce energy costs, achieve independence, and support long-term sustainability goals.',
-      link: '/category/solar-power-solutions',
     },
   ];
 
@@ -116,7 +115,7 @@ const Home = () => {
     { number: '10+', label: 'Years Experience' },
     { number: '500+', label: 'Projects Delivered' },
     { number: '8', label: 'Trusted Brand Partners' },
-    { number: '24/7', label: 'Support Available' },
+    { number: '1 HR', label: 'Phone Response' },
   ];
 
   const whyChoosePoints = [
@@ -158,6 +157,7 @@ const Home = () => {
     };
 
     loadBanners();
+
     return () => {
       cancelled = true;
     };
@@ -176,6 +176,7 @@ const Home = () => {
   const handleSlideChange = (index) => {
     if (index !== currentSlide) {
       setIsTransitioning(true);
+
       setTimeout(() => {
         setCurrentSlide(index);
         setIsTransitioning(false);
@@ -202,11 +203,22 @@ const Home = () => {
         {currentSlideData.displayMode === 'poster' ? (
           <div className={styles.heroPosterContainer}>
             {currentSlideData.posterLink ? (
-              <a href={currentSlideData.posterLink} className={styles.heroPosterLink}>
-                <img src={currentSlideData.posterImage} alt="Promotional Poster" className={styles.heroPosterImage} />
+              <a
+                href={currentSlideData.posterLink}
+                className={styles.heroPosterLink}
+              >
+                <img
+                  src={currentSlideData.posterImage}
+                  alt="Promotional Poster"
+                  className={styles.heroPosterImage}
+                />
               </a>
             ) : (
-              <img src={currentSlideData.posterImage} alt="Promotional Poster" className={styles.heroPosterImage} />
+              <img
+                src={currentSlideData.posterImage}
+                alt="Promotional Poster"
+                className={styles.heroPosterImage}
+              />
             )}
 
             <div className={styles.heroPosterNavigation}>
@@ -214,7 +226,9 @@ const Home = () => {
                 <button
                   key={index}
                   onClick={() => handleSlideChange(index)}
-                  className={`${styles.heroDot} ${index === currentSlide ? styles.heroDotActive : ''}`}
+                  className={`${styles.heroDot} ${
+                    index === currentSlide ? styles.heroDotActive : ''
+                  }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
@@ -224,21 +238,46 @@ const Home = () => {
           <div className={styles.heroContainer}>
             {/* Desktop Layout */}
             <div className={styles.heroContent}>
-              <p className={styles.heroSubtitle}>{currentSlideData.subtitle}</p>
-              <h1 className={styles.heroTitle}>{currentSlideData.title}</h1>
-              <p className={styles.heroDescription}>{currentSlideData.description}</p>
+              <p className={styles.heroSubtitle}>
+                {currentSlideData.subtitle}
+              </p>
+
+              <h1 className={styles.heroTitle}>
+                {currentSlideData.title}
+              </h1>
+
+              <p className={styles.heroDescription}>
+                {currentSlideData.description}
+              </p>
 
               <div className={styles.heroButtons}>
                 <button
                   className={`btn btn--primary ${styles.heroButton}`}
-                  onClick={() => (window.location.href = currentSlideData.link)}
+                  onClick={() =>
+                    (window.location.href = currentSlideData.link)
+                  }
                 >
                   {currentSlideData.buttonText}
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: '18px', height: '18px' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    style={{ width: '18px', height: '18px' }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
                   </svg>
                 </button>
-                <a href="/contact" className={`btn btn--outline ${styles.heroButtonSecondary}`}>
+
+                <a
+                  href="/contact"
+                  className={`btn btn--outline ${styles.heroButtonSecondary}`}
+                >
                   Get a Quote
                 </a>
               </div>
@@ -248,7 +287,9 @@ const Home = () => {
                   <button
                     key={index}
                     onClick={() => handleSlideChange(index)}
-                    className={`${styles.heroDot} ${index === currentSlide ? styles.heroDotActive : ''}`}
+                    className={`${styles.heroDot} ${
+                      index === currentSlide ? styles.heroDotActive : ''
+                    }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
@@ -256,13 +297,27 @@ const Home = () => {
             </div>
 
             <div className={styles.heroImageContainer}>
-              <div className={`${styles.heroImageWrapper} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`}>
-                <div className={`${styles.heroImagesGrid} ${
-                  currentImages.length === 3 ? styles.threeImages :
-                  currentImages.length === 2 ? styles.twoImages : ''
-                }`}>
+              <div
+                className={`${styles.heroImageWrapper} ${
+                  isTransitioning ? styles.fadeOut : styles.fadeIn
+                }`}
+              >
+                <div
+                  className={`${styles.heroImagesGrid} ${
+                    currentImages.length === 3
+                      ? styles.threeImages
+                      : currentImages.length === 2
+                      ? styles.twoImages
+                      : ''
+                  }`}
+                >
                   {currentImages.map((img, idx) => (
-                    <img key={idx} src={img} alt={`${currentSlideData.title} - ${idx + 1}`} className={styles.heroImage} />
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`${currentSlideData.title} - ${idx + 1}`}
+                      className={styles.heroImage}
+                    />
                   ))}
                 </div>
               </div>
@@ -271,13 +326,27 @@ const Home = () => {
             {/* Mobile Layout */}
             <div className={styles.heroMobileLayout}>
               <div className={styles.heroMobileImages}>
-                <div className={`${styles.heroImageWrapper} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`}>
-                  <div className={`${styles.heroImagesGrid} ${
-                    currentImages.length === 3 ? styles.threeImages :
-                    currentImages.length === 2 ? styles.twoImages : ''
-                  }`}>
+                <div
+                  className={`${styles.heroImageWrapper} ${
+                    isTransitioning ? styles.fadeOut : styles.fadeIn
+                  }`}
+                >
+                  <div
+                    className={`${styles.heroImagesGrid} ${
+                      currentImages.length === 3
+                        ? styles.threeImages
+                        : currentImages.length === 2
+                        ? styles.twoImages
+                        : ''
+                    }`}
+                  >
                     {currentImages.map((img, idx) => (
-                      <img key={idx} src={img} alt={`${currentSlideData.title} - ${idx + 1}`} className={styles.heroImage} />
+                      <img
+                        key={idx}
+                        src={img}
+                        alt={`${currentSlideData.title} - ${idx + 1}`}
+                        className={styles.heroImage}
+                      />
                     ))}
                   </div>
                 </div>
@@ -285,15 +354,25 @@ const Home = () => {
 
               <button
                 className={`btn btn--primary ${styles.heroMobileButton}`}
-                onClick={() => (window.location.href = currentSlideData.link)}
+                onClick={() =>
+                  (window.location.href = currentSlideData.link)
+                }
               >
                 {currentSlideData.buttonText}
               </button>
 
               <div className={styles.heroMobileContent}>
-                <p className={styles.heroSubtitle}>{currentSlideData.subtitle}</p>
-                <h1 className={styles.heroTitle}>{currentSlideData.title}</h1>
-                <p className={styles.heroDescription}>{currentSlideData.description}</p>
+                <p className={styles.heroSubtitle}>
+                  {currentSlideData.subtitle}
+                </p>
+
+                <h1 className={styles.heroTitle}>
+                  {currentSlideData.title}
+                </h1>
+
+                <p className={styles.heroDescription}>
+                  {currentSlideData.description}
+                </p>
               </div>
 
               <div className={styles.heroMobileNavigation}>
@@ -301,7 +380,9 @@ const Home = () => {
                   <button
                     key={index}
                     onClick={() => handleSlideChange(index)}
-                    className={`${styles.heroDot} ${index === currentSlide ? styles.heroDotActive : ''}`}
+                    className={`${styles.heroDot} ${
+                      index === currentSlide ? styles.heroDotActive : ''
+                    }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
@@ -317,26 +398,100 @@ const Home = () => {
           <div className={styles.sliderWrapper}>
             <div className={styles.sliderTrack}>
               {[
-                { logo: AlcatelLogo, name: 'Alcatel', link: 'https://www.al-enterprise.com/' },
-                { logo: AvayaLogo, name: 'Avaya', link: 'https://www.avaya.com/' },
-                { logo: CiscoLogo, name: 'Cisco', link: 'https://www.cisco.com/' },
-                { logo: EatonLogo, name: 'Eaton', link: 'https://www.eaton.com/' },
-                { logo: SiemonLogo, name: 'Siemon', link: 'https://www.siemon.com/' },
-                { logo: UbiquitiLogo, name: 'Ubiquiti', link: 'https://www.ui.com/' },
-                { logo: GiganetLogo, name: 'Giganet', link: 'https://www.giganet.com.eg/' },
-                { logo: HikvisionLogo, name: 'Hikvision', link: 'https://www.hikvision.com/' },
+                {
+                  logo: AlcatelLogo,
+                  name: 'Alcatel',
+                  link: 'https://www.al-enterprise.com/',
+                },
+                {
+                  logo: AvayaLogo,
+                  name: 'Avaya',
+                  link: 'https://www.avaya.com/',
+                },
+                {
+                  logo: CiscoLogo,
+                  name: 'Cisco',
+                  link: 'https://www.cisco.com/',
+                },
+                {
+                  logo: EatonLogo,
+                  name: 'Eaton',
+                  link: 'https://www.eaton.com/',
+                },
+                {
+                  logo: SiemonLogo,
+                  name: 'Siemon',
+                  link: 'https://www.siemon.com/',
+                },
+                {
+                  logo: UbiquitiLogo,
+                  name: 'Ubiquiti',
+                  link: 'https://www.ui.com/',
+                },
+                {
+                  logo: GiganetLogo,
+                  name: 'Giganet',
+                  link: 'https://www.giganet.com.eg/',
+                },
+                {
+                  logo: HikvisionLogo,
+                  name: 'Hikvision',
+                  link: 'https://www.hikvision.com/',
+                },
               ].concat([
-                { logo: AlcatelLogo, name: 'Alcatel', link: 'https://www.al-enterprise.com/' },
-                { logo: AvayaLogo, name: 'Avaya', link: 'https://www.avaya.com/' },
-                { logo: CiscoLogo, name: 'Cisco', link: 'https://www.cisco.com/' },
-                { logo: EatonLogo, name: 'Eaton', link: 'https://www.eaton.com/' },
-                { logo: SiemonLogo, name: 'Siemon', link: 'https://www.siemon.com/' },
-                { logo: UbiquitiLogo, name: 'Ubiquiti', link: 'https://www.ui.com/' },
-                { logo: GiganetLogo, name: 'Giganet', link: 'https://www.giganet.com.eg/' },
-                { logo: HikvisionLogo, name: 'Hikvision', link: 'https://www.hikvision.com/' },
+                {
+                  logo: AlcatelLogo,
+                  name: 'Alcatel',
+                  link: 'https://www.al-enterprise.com/',
+                },
+                {
+                  logo: AvayaLogo,
+                  name: 'Avaya',
+                  link: 'https://www.avaya.com/',
+                },
+                {
+                  logo: CiscoLogo,
+                  name: 'Cisco',
+                  link: 'https://www.cisco.com/',
+                },
+                {
+                  logo: EatonLogo,
+                  name: 'Eaton',
+                  link: 'https://www.eaton.com/',
+                },
+                {
+                  logo: SiemonLogo,
+                  name: 'Siemon',
+                  link: 'https://www.siemon.com/',
+                },
+                {
+                  logo: UbiquitiLogo,
+                  name: 'Ubiquiti',
+                  link: 'https://www.ui.com/',
+                },
+                {
+                  logo: GiganetLogo,
+                  name: 'Giganet',
+                  link: 'https://www.giganet.com.eg/',
+                },
+                {
+                  logo: HikvisionLogo,
+                  name: 'Hikvision',
+                  link: 'https://www.hikvision.com/',
+                },
               ]).map((brand, index) => (
-                <a key={index} href={brand.link} target="_blank" rel="noopener noreferrer" className={styles.partnerLogoLink}>
-                  <img src={brand.logo} alt={brand.name} className={styles.partnerLogo} />
+                <a
+                  key={index}
+                  href={brand.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.partnerLogoLink}
+                >
+                  <img
+                    src={brand.logo}
+                    alt={brand.name}
+                    className={styles.partnerLogo}
+                  />
                 </a>
               ))}
             </div>
@@ -363,15 +518,28 @@ const Home = () => {
             <span className={styles.eyebrow}>What We Offer</span>
             <h2 className={styles.servicesTitle}>Our Services</h2>
           </div>
+
           <div className={styles.servicesGrid}>
             {services.map((service) => (
-              <a key={service.id} href={service.link} className={styles.serviceCard}>
+              <a
+                key={service.id}
+                href={service.link}
+                className={styles.serviceCard}
+              >
                 <div className={styles.serviceImageWrapper}>
-                  <img src={service.image} alt={service.title} className={styles.serviceImage} />
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className={styles.serviceImage}
+                  />
                 </div>
+
                 <div className={styles.serviceContent}>
                   <h3 className={styles.serviceTitle}>{service.title}</h3>
-                  <p className={styles.serviceDescription}>{service.description}</p>
+
+                  <p className={styles.serviceDescription}>
+                    {service.description}
+                  </p>
                 </div>
               </a>
             ))}
@@ -387,7 +555,11 @@ const Home = () => {
         <div className={styles.whyContainer}>
           <div className={styles.whyText}>
             <span className={styles.eyebrow}>Why Marinc</span>
-            <h2 className={styles.whyTitle}>Built on Trust, Backed by Expertise</h2>
+
+            <h2 className={styles.whyTitle}>
+              Built on Trust, Backed by Expertise
+            </h2>
+
             <ul className={styles.whyList}>
               {whyChoosePoints.map((point, index) => (
                 <li key={index} className={styles.whyItem}>
@@ -397,8 +569,13 @@ const Home = () => {
               ))}
             </ul>
           </div>
+
           <div className={styles.whyImageWrapper}>
-            <img src={WhyImage} alt="Marinc Systems team at work" className={styles.whyImage} />
+            <img
+              src={WhyImage}
+              alt="Marinc Systems team at work"
+              className={styles.whyImage}
+            />
           </div>
         </div>
       </section>

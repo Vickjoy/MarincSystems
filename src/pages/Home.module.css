@@ -376,8 +376,8 @@
   gap: var(--space-6);
 }
 
-@media (min-width: 768px) { .servicesGrid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .servicesGrid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px)  { .servicesGrid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1200px) { .servicesGrid { grid-template-columns: repeat(4, 1fr); } }
 
 .serviceCard {
   background: var(--color-bg);

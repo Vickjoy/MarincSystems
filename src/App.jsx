@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import About from './pages/About';
+import Services from './pages/Services';
 import Checkout from './pages/Checkout';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
@@ -17,7 +18,18 @@ import AdminLayout from './components/AdminLayout';
 import OrderSummary from './pages/OrderSummary';
 import FloatingWhatsAppButton from './components/FloatingWhatsAppButton';
 import BlogDetail from './pages/BlogDetail';
-import SolarRouteWrapper from './components/SolarRouteWrapper';
+
+// Every page change (footer links, header links, anything) opens at the top.
+// Only the pathname is watched, so switching subcategory tabs (#hash) doesn't jump.
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+
+  return null;
+};
 
 // Component to handle routes + header/footer visibility
 const App = () => {
@@ -28,21 +40,24 @@ const App = () => {
     '/admin-dashboard',
     '/admin-products',
     '/admin-categories',
-    '/admin-subcategories'
+    '/admin-subcategories',
   ];
 
   // Check if current path starts with any admin route
-  const isAdminRoute = adminRoutes.some(route =>
+  const isAdminRoute = adminRoutes.some((route) =>
     location.pathname.startsWith(route)
   );
 
   return (
     <div className="App">
+      <ScrollToTop />
+
       {!isAdminRoute && <Header />}
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/services" element={<Services />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-summary" element={<OrderSummary />} />
         <Route path="/contact" element={<Contact />} />
@@ -53,10 +68,10 @@ const App = () => {
         <Route path="/blog/:slug" element={<BlogDetail />} />
         <Route path="/fire-safety/:categorySlug" element={<ProductList />} />
         <Route path="/ict/:categorySlug" element={<ProductList />} />
-        
-        {/* Use SolarRouteWrapper for all category routes */}
-        <Route path="/category/:slug" element={<SolarRouteWrapper />} />
-        
+
+        {/* SolarRouteWrapper removed: all categories use CategoryPage */}
+        <Route path="/category/:slug" element={<CategoryPage />} />
+
         <Route path="/search" element={<ProductList />} />
         <Route
           path="/admin-dashboard"

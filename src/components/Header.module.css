@@ -1,42 +1,81 @@
-/* Header — single bar, zone-keyed nav, sticky condensed */
+/* Header — top contact bar, large logo, zone-keyed nav, search, sticky condensed */
 
-.emergencyStrip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+/* ---------- Top bar ---------- */
+.topbar {
   background: var(--ink);
   color: rgba(246, 243, 238, 0.85);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.45rem var(--gutter);
-  text-align: center;
+  letter-spacing: 0.03em;
 }
 
-.emergencyStrip a {
-  color: var(--paper);
+.topbarInner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0.5rem var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.35rem var(--space-5);
+}
+
+.topbarContact {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem var(--space-5);
+}
+
+.topbarItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.topbar a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.topbar a:hover,
+.topbar a:focus-visible {
+  color: var(--white);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
 }
 
-.emergencyDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--red);
+.topbarSep {
+  opacity: 0.4;
+  margin: 0 0.15rem;
+}
+
+.topbarIcon {
+  font-size: 11px;
+  color: var(--red-bright);
   flex-shrink: 0;
 }
 
+.topbarSocial {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.topbarSocial a {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+/* ---------- Header bar ---------- */
 .header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: var(--paper);
+  background: var(--white);
   border-bottom: 1px solid var(--line);
-  transition: height var(--transition-fast);
 }
 
 .bar {
@@ -47,12 +86,12 @@
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 0 var(--gutter);
-  height: var(--header-height);
+  height: 92px;
   transition: height var(--transition-fast);
 }
 
 .condensed .bar {
-  height: var(--header-height-condensed);
+  height: 76px;
 }
 
 .logoLink {
@@ -61,20 +100,22 @@
   flex-shrink: 0;
 }
 
+/* Logo is the first thing visitors should see */
 .logo {
-  height: 40px;
+  height: 90px;
   width: auto;
   display: block;
   transition: height var(--transition-fast);
 }
 
 .condensed .logo {
-  height: 32px;
+  height: 74px;
 }
 
 .nav {
   display: flex;
   justify-content: center;
+  height: 100%;
 }
 
 .navList {
@@ -95,44 +136,74 @@
 .navLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0 1rem;
+  padding: 0 0.85rem;
   height: 100%;
-  background: none;
-  border: none;
   border-top: 3px solid transparent;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 500;
-  cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition: border-color var(--transition-fast);
 }
 
-.navLink:hover,
-.navLink:focus-visible {
-  color: var(--ink);
+.navLink:hover {
+  border-top-color: var(--ink);
+}
+
+.navActive {
+  border-top-color: var(--red);
+  font-weight: 700;
+}
+
+/* Fire / ICT: label link + dropdown toggle */
+.zoneItem {
+  display: inline-flex;
+  align-items: stretch;
+  border-top: 3px solid transparent;
+  transition: border-color var(--transition-fast);
 }
 
 .zoneFire:hover,
-.zoneFire[aria-expanded='true'] {
+.zoneFire.zoneOpen {
   border-top-color: var(--zone-fire);
 }
 
 .zoneIct:hover,
-.zoneIct[aria-expanded='true'] {
+.zoneIct.zoneOpen {
   border-top-color: var(--zone-ict);
 }
 
-.zoneSolar:hover {
-  border-top-color: var(--zone-solar);
+.zoneLabel {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.15rem 0 0.85rem;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.zoneToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.zoneToggle:hover {
+  color: var(--ink);
 }
 
 .chevron {
   font-size: 9px;
-  color: var(--muted);
 }
 
 .actions {
@@ -142,30 +213,8 @@
   flex-shrink: 0;
 }
 
-.phone {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-  text-decoration: none;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  height: 40px;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.phone:hover {
-  border-color: var(--ink);
-  background: var(--white);
-}
-
-.phoneIcon {
-  font-size: 11px;
+.searchDesktop {
+  width: 210px;
 }
 
 .quoteBtn {
@@ -181,6 +230,7 @@
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 500;
+  white-space: nowrap;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
@@ -224,7 +274,13 @@
   cursor: pointer;
 }
 
-/* Mega menu */
+/* Search row: only on tablet / mobile */
+.searchRow {
+  display: none;
+  padding: 0 var(--gutter) 0.75rem;
+}
+
+/* ---------- Mega menu ---------- */
 .megaMenu {
   position: absolute;
   top: 100%;
@@ -235,7 +291,6 @@
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
   z-index: 2000;
-  margin-top: 0;
   display: flex;
   animation: fadeDrop 0.2s ease;
 }
@@ -326,7 +381,7 @@
   margin: 0;
 }
 
-/* Full-screen mobile menu */
+/* ---------- Full-screen mobile menu ---------- */
 .mobileMenu {
   position: fixed;
   inset: 0;
@@ -341,15 +396,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-4) var(--gutter);
+  padding: var(--space-3) var(--gutter);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
-  background: var(--paper);
+  background: var(--white);
 }
 
 .mobileMenuLogo {
-  height: 32px;
+  height: 52px;
   width: auto;
 }
 
@@ -495,11 +550,9 @@
   text-decoration: none;
 }
 
-@media (max-width: 1024px) {
-  .nav {
-    display: none;
-  }
-
+/* ---------- Responsive ---------- */
+@media (max-width: 1200px) {
+  .nav,
   .actions {
     display: none;
   }
@@ -511,6 +564,41 @@
 
   .bar {
     grid-template-columns: auto 1fr;
+    height: 76px;
+  }
+
+  .condensed .bar {
+    height: 68px;
+  }
+
+  .logo {
+    height: 58px;
+  }
+
+  .condensed .logo {
+    height: 50px;
+  }
+
+  .searchRow {
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbarEmail {
+    display: none;
+  }
+
+  .topbarInner {
+    padding: 0.4rem var(--gutter);
+  }
+
+  .bar {
+    height: 68px;
+  }
+
+  .logo {
+    height: 52px;
   }
 }
 

@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ProductCard from '../components/ProductCard';
 import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './ProductList.module.css';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import ProductForm from '../components/ProductForm';
 import { fetchCategories, fetchSubcategories } from '../utils/api';
+// NOTE: search.js must live in src/utils (it imports ./api and ./zones)
+import { searchProducts } from '../utils/search';
 
 // Cache configuration
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
@@ -109,33 +110,28 @@ const ProductList = () => {
   const { categorySlug, slug } = useParams();
   const category = categorySlug || slug || '';
   const location = useLocation();
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subCategory, setSubCategory] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const observer = useRef();
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
-  // If search results are passed via location.state, use them
+  // Search mode: driven by /search?query=... so it survives refresh and back/forward
   const isSearchResults = location.pathname.startsWith('/search');
-  const searchResults = location.state && location.state.results;
+  const searchQuery = new URLSearchParams(location.search).get('query') || '';
 
+  // Categories (browse mode only)
   useEffect(() => {
-    if (isSearchResults && Array.isArray(searchResults)) {
-      setProducts(searchResults);
-      setLoading(false);
-      setSubcategories([]);
-      return;
-    }
+    if (isSearchResults) return;
 
     setLoading(true);
-    // Fetch categories on mount with caching
     const getCategories = async () => {
       setLoadingCategories(true);
       try {
@@ -149,7 +145,35 @@ const ProductList = () => {
       }
     };
     getCategories();
-  }, [isSearchResults, searchResults]);
+  }, [isSearchResults]);
+
+  // Search (search mode only)
+  useEffect(() => {
+    if (!isSearchResults) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setSearchError('');
+    setProducts([]);
+    setSubcategories([]);
+    setHasMore(false);
+
+    searchProducts(searchQuery)
+      .then((results) => {
+        if (!cancelled) setProducts(results);
+      })
+      .catch((error) => {
+        console.error('Search failed:', error);
+        if (!cancelled) setSearchError('Search is unavailable right now. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSearchResults, searchQuery]);
 
   // Only fetch subcategories/products if not search results
   useEffect(() => {
@@ -174,18 +198,19 @@ const ProductList = () => {
         if ((!subCategory || !subCategory.slug) && Array.isArray(data) && data.length > 0) {
           setSubCategory(data[0]);
         }
-        // FIX: with no subcategory, fetchProducts never runs, so `loading`
+        // With no subcategory, fetchProducts never runs, so `loading`
         // would stay true forever and the empty state could never show.
         if (Array.isArray(data) && data.length === 0) setLoading(false);
       } catch (error) {
         console.error('Error fetching subcategories:', error);
         setSubcategories([]);
-        setLoading(false); // FIX: same as above
+        setLoading(false);
       } finally {
         setLoadingSubcategories(false);
       }
     };
     getSubcategories();
+    // eslint-disable-next-line
   }, [category, categories, isSearchResults]);
 
   // Only fetch products if not search results
@@ -280,11 +305,28 @@ const ProductList = () => {
   const crumbs = [
     { label: 'Home', path: '/' },
     isSearchResults
-      ? { label: `Search Results`, path: location.pathname }
-      : { label: location.pathname.startsWith('/fire-safety') ? 'Fire Safety' : 'ICT', path: location.pathname.startsWith('/fire-safety') ? '/fire-safety' : '/ict' },
+      ? { label: 'Search Results', path: location.pathname + location.search }
+      : { label: location.pathname.startsWith('/fire-safety') ? 'Fire Safety' : 'ICT & Security', path: location.pathname.startsWith('/fire-safety') ? '/fire-safety' : '/ict' },
     ...(isSearchResults ? [] : [{ label: categoryLabel, path: location.pathname }]),
     ...(subCategory && !isSearchResults ? [{ label: subCategory.name, path: '#' }] : [])
   ];
+
+  const renderEmpty = () => {
+    if (isSearchResults) {
+      if (loading) return <div className={styles.loadingMessage}>Searching…</div>;
+      if (searchError) return <p className={styles.noProductsMessage}>{searchError}</p>;
+      if (!searchQuery.trim()) {
+        return <p className={styles.noProductsMessage}>Type a product name, brand or model in the search box.</p>;
+      }
+      return (
+        <p className={styles.noProductsMessage}>
+          No products found for “{searchQuery}”. Try a shorter word, a brand name or a model number.
+        </p>
+      );
+    }
+    if (loading) return <div className={styles.loadingMessage}>Loading products...</div>;
+    return <p className={styles.noProductsMessage}>No products in this subcategory yet.</p>;
+  };
 
   return (
     <div>
@@ -338,8 +380,16 @@ const ProductList = () => {
           {/* Main content: Product Grid */}
           <div className={styles.mainContent}>
             <h2 className={styles.categoryTitle}>
-              {isSearchResults ? 'Search Results' : `${categoryLabel} Products`}
+              {isSearchResults
+                ? (searchQuery ? `Search results for “${searchQuery}”` : 'Search results')
+                : `${categoryLabel} Products`}
             </h2>
+
+            {isSearchResults && !loading && products.length > 0 && (
+              <p className={styles.resultCount}>
+                {products.length} {products.length === 1 ? 'product' : 'products'} found
+              </p>
+            )}
 
             {/* Product Grid: Only show if there are products */}
             {products.length > 0 ? (
@@ -351,23 +401,18 @@ const ProductList = () => {
                         <ProductCard product={product} onDelete={handleDelete} />
                       </div>
                     );
-                  } else {
-                    return <ProductCard key={product.id} product={product} onDelete={handleDelete} />;
                   }
+                  return <ProductCard key={product.id} product={product} onDelete={handleDelete} />;
                 })}
-                {loading && (
+                {loading && !isSearchResults && (
                   <div className={styles.loadingMessage}>Loading more products...</div>
                 )}
                 {!hasMore && !loading && products.length > 0 && !isSearchResults && (
                   <p className={styles.endMessage}>You've reached the end of this list.</p>
                 )}
               </div>
-            ) : loading ? (
-              <div className={styles.loadingMessage}>Loading products...</div>
             ) : (
-              <p className={styles.noProductsMessage}>
-                {isSearchResults ? 'No results found.' : 'No products in this subcategory yet.'}
-              </p>
+              renderEmpty()
             )}
           </div>
         </div>

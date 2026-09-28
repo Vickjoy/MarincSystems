@@ -1,17 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import CompanyLogo from '../assets/MarincLogo.jpg';
 import styles from './Header.module.css';
 import { fetchCategories, fetchSubcategories } from '../utils/api';
 import { useCart } from '../context/CartContext';
 import QuoteDrawer from './QuoteDrawer';
 import MobileBottomBar from './MobileBottomBar';
+import SearchBar from './SearchBar';
 import ZoneTag from './ZoneTag';
 import { filterByZone, ZONES } from '../utils/zones';
-import { FaChevronDown, FaBars, FaTimes, FaChevronRight, FaPhoneAlt } from 'react-icons/fa';
-
-const PHONE_DISPLAY = '0721 247 356';
-const PHONE_TEL = '0721247356';
+import { CONTACT } from '../config/contact';
+import {
+  FaChevronDown,
+  FaBars,
+  FaTimes,
+  FaChevronRight,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaMapMarkerAlt,
+} from 'react-icons/fa';
+import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
 
 const Header = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -88,15 +96,24 @@ const Header = () => {
 
   const fireCategories = filterByZone(categories, 'fire');
   const ictCategories = filterByZone(categories, 'ict');
-  const solarCategories = filterByZone(categories, 'solar');
 
-  const handleDropdownToggle = (dropdownName) => {
-    const isOpen = openDropdown === dropdownName;
-    setOpenDropdown(isOpen ? null : dropdownName);
-    if (!isOpen) {
-      const list = dropdownName === 'fire' ? fireCategories : ictCategories;
-      // Only the categories actually shown in the mega menu (first 9)
-      list.slice(0, 9).forEach((cat) => loadSubcategories(cat.slug));
+  const zoneLists = { fire: fireCategories, ict: ictCategories };
+
+  const openMenu = (zoneId) => {
+    setOpenDropdown(zoneId);
+    // Only the categories actually shown in the mega menu (first 9)
+    (zoneLists[zoneId] || []).slice(0, 9).forEach((cat) => loadSubcategories(cat.slug));
+  };
+
+  const handleDropdownToggle = (zoneId) => {
+    if (openDropdown === zoneId) setOpenDropdown(null);
+    else openMenu(zoneId);
+  };
+
+  // Hover-to-open only on devices that really hover (avoids double-toggle on touch)
+  const handleHoverOpen = (zoneId) => {
+    if (window.matchMedia && window.matchMedia('(hover: hover)').matches) {
+      openMenu(zoneId);
     }
   };
 
@@ -124,7 +141,6 @@ const Header = () => {
     } else {
       setMobileExpandedCategory(categoryType);
       setMobileExpandedSubcategory(null);
-      // Subcategories for mobile are loaded lazily when a category row is expanded
     }
   };
 
@@ -133,6 +149,15 @@ const Header = () => {
     setMobileExpandedSubcategory(next);
     if (next) loadSubcategories(catSlug);
   };
+
+  // Where the "Fire Safety" / "ICT & Security" label itself takes the visitor
+  const zoneLink = (zoneId) => {
+    const first = (zoneLists[zoneId] || [])[0];
+    return first ? `/category/${first.slug}` : '/';
+  };
+
+  const navClass = ({ isActive }) =>
+    `${styles.navLink} ${isActive ? styles.navActive : ''}`.trim();
 
   const renderMegaMenu = (zoneId, categoryList, isOpen) => {
     if (!isOpen) return null;
@@ -195,6 +220,7 @@ const Header = () => {
         className={`${styles.mobileRow} ${mobileExpandedCategory === categoryType ? styles.mobileRowOpen : ''}`}
         style={{ '--zone-color': ZONES[zoneId]?.color }}
         onClick={() => handleMobileCategoryClick(categoryType)}
+        aria-expanded={mobileExpandedCategory === categoryType}
       >
         <span className={styles.mobileRowLabel}>
           <span className={styles.mobileSwatch} aria-hidden="true" />
@@ -253,13 +279,82 @@ const Header = () => {
     </div>
   );
 
+  const renderZoneNavItem = (zoneId, label, ref) => (
+    <li
+      ref={ref}
+      className={styles.navItem}
+      onMouseEnter={() => handleHoverOpen(zoneId)}
+    >
+      <div
+        className={`${styles.zoneItem} ${styles[zoneId === 'fire' ? 'zoneFire' : 'zoneIct']} ${
+          openDropdown === zoneId ? styles.zoneOpen : ''
+        }`}
+      >
+        <Link to={zoneLink(zoneId)} className={styles.zoneLabel} onClick={closeAll}>
+          {label}
+        </Link>
+        <button
+          type="button"
+          className={styles.zoneToggle}
+          onClick={() => handleDropdownToggle(zoneId)}
+          aria-expanded={openDropdown === zoneId}
+          aria-label={`Show ${label} categories`}
+        >
+          <FaChevronDown className={styles.chevron} />
+        </button>
+      </div>
+      {renderMegaMenu(zoneId, zoneLists[zoneId], openDropdown === zoneId)}
+    </li>
+  );
+
   return (
     <>
-      {/* Optional campaign / emergency strip */}
-      <div className={styles.emergencyStrip}>
-        <span className={styles.emergencyDot} aria-hidden="true" />
-        <span>24-HOUR CALL-OUT · </span>
-        <a href={`tel:${PHONE_TEL}`}>{PHONE_DISPLAY}</a>
+      {/* Top bar: contact details + social */}
+      <div className={styles.topbar}>
+        <div className={styles.topbarInner}>
+          <div className={styles.topbarContact}>
+            <span className={styles.topbarItem}>
+              <FaPhoneAlt className={styles.topbarIcon} aria-hidden="true" />
+              <a href={`tel:${CONTACT.phones[0].tel}`}>{CONTACT.phones[0].display}</a>
+              <span className={styles.topbarSep} aria-hidden="true">/</span>
+              <a href={`tel:${CONTACT.phones[1].tel}`}>{CONTACT.phones[1].display}</a>
+            </span>
+            <a
+              href={`mailto:${CONTACT.email}`}
+              className={`${styles.topbarItem} ${styles.topbarEmail}`}
+            >
+              <FaEnvelope className={styles.topbarIcon} aria-hidden="true" />
+              {CONTACT.email}
+            </a>
+
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Shelter+House+Dai+Dai+Road+South+B+Nairobi"
+              target= "blank"
+              rel="noopener noreferrer"
+              className={styles.topbarItem}
+
+            >  
+              <FaMapMarkerAlt className={styles.topbarIcon} aria-hidden="true" />
+              Said Bin Seif Building, Meru Road, Opposite Fantasy Restaurant
+            </a>
+
+          </div>
+           
+          <div className={styles.topbarSocial}>
+            <a href={CONTACT.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <FaFacebookF />
+            </a>
+            <a href={CONTACT.social.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+              <FaTiktok />
+            </a>
+            <a href={CONTACT.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <FaInstagram />
+            </a>
+            <a href={CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+              <FaWhatsapp />
+            </a>
+          </div>
+        </div>
       </div>
 
       <header className={`${styles.header} ${scrolled ? styles.condensed : ''}`}>
@@ -270,70 +365,49 @@ const Header = () => {
 
           <nav className={styles.nav} aria-label="Primary">
             <ul className={styles.navList}>
-              <li ref={fireRef} className={styles.navItem}>
-                <button
-                  type="button"
-                  className={`${styles.navLink} ${styles.zoneFire}`}
-                  onClick={() => handleDropdownToggle('fire')}
-                  aria-expanded={openDropdown === 'fire'}
-                >
-                  Fire Safety
-                  <FaChevronDown className={styles.chevron} />
-                </button>
-                {renderMegaMenu('fire', fireCategories, openDropdown === 'fire')}
+              <li className={styles.navItem}>
+                <NavLink to="/" end className={navClass} onClick={closeAll}>Home</NavLink>
               </li>
 
-              <li ref={ictRef} className={styles.navItem}>
-                <button
-                  type="button"
-                  className={`${styles.navLink} ${styles.zoneIct}`}
-                  onClick={() => handleDropdownToggle('ict')}
-                  aria-expanded={openDropdown === 'ict'}
-                >
-                  ICT &amp; Security
-                  <FaChevronDown className={styles.chevron} />
-                </button>
-                {renderMegaMenu('ict', ictCategories, openDropdown === 'ict')}
-              </li>
+              {renderZoneNavItem('fire', 'Fire Safety', fireRef)}
+              {renderZoneNavItem('ict', 'ICT & Security', ictRef)}
 
               <li className={styles.navItem}>
-                <Link
-                  to="/category/solar-power-solutions"
-                  className={`${styles.navLink} ${styles.zoneSolar}`}
-                >
-                  Solar &amp; Power
-                </Link>
+                <NavLink to="/services" className={navClass} onClick={closeAll}>Services</NavLink>
               </li>
-
               <li className={styles.navItem}>
-                <Link to="/services" className={styles.navLink}>Services</Link>
+                <NavLink to="/about" className={navClass} onClick={closeAll}>About</NavLink>
               </li>
-
               <li className={styles.navItem}>
-                <Link to="/about" className={styles.navLink}>About</Link>
+                <NavLink to="/contact" className={navClass} onClick={closeAll}>Contact</NavLink>
               </li>
             </ul>
           </nav>
 
           <div className={styles.actions}>
-            <a href={`tel:${PHONE_TEL}`} className={styles.phone}>
-              <FaPhoneAlt className={styles.phoneIcon} aria-hidden="true" />
-              {PHONE_DISPLAY}
-            </a>
+            <div className={styles.searchDesktop}>
+              <SearchBar onSearch={closeAll} />
+            </div>
             <button
               type="button"
               className={styles.quoteBtn}
               onClick={() => setQuoteOpen(true)}
             >
               Quote List
-              {quoteCount > 0 && (
-                <span className={styles.quoteCount}>{quoteCount}</span>
-              )}
+              {quoteCount > 0 && <span className={styles.quoteCount}>{quoteCount}</span>}
             </button>
           </div>
 
-          {/* Mobile controls */}
+          {/* Mobile / tablet controls */}
           <div className={styles.mobileControls}>
+            <button
+              type="button"
+              className={styles.quoteBtn}
+              onClick={() => setQuoteOpen(true)}
+            >
+              Quote
+              {quoteCount > 0 && <span className={styles.quoteCount}>{quoteCount}</span>}
+            </button>
             <button
               type="button"
               className={styles.menuBtn}
@@ -342,17 +416,12 @@ const Header = () => {
             >
               <FaBars />
             </button>
-            <button
-              type="button"
-              className={styles.quoteBtn}
-              onClick={() => setQuoteOpen(true)}
-            >
-              Quote
-              {quoteCount > 0 && (
-                <span className={styles.quoteCount}>{quoteCount}</span>
-              )}
-            </button>
           </div>
+        </div>
+
+        {/* Search row for tablet / mobile */}
+        <div className={styles.searchRow}>
+          <SearchBar onSearch={closeAll} />
         </div>
       </header>
 
@@ -360,7 +429,7 @@ const Header = () => {
       {mobileMenuOpen && (
         <div className={styles.mobileMenu} role="dialog" aria-modal="true" aria-label="Menu">
           <div className={styles.mobileMenuHeader}>
-            <img src={CompanyLogo} alt="" className={styles.mobileMenuLogo} />
+            <img src={CompanyLogo} alt="Marinc Systems" className={styles.mobileMenuLogo} />
             <button
               type="button"
               className={styles.mobileClose}
@@ -371,14 +440,24 @@ const Header = () => {
             </button>
           </div>
           <div className={styles.mobileMenuBody}>
+            <Link to="/" className={styles.mobileFlat} onClick={closeAll}>Home</Link>
             {renderMobileSection(fireCategories, 'fire', 'Fire Safety', 'fire')}
             {renderMobileSection(ictCategories, 'ict', 'ICT & Security', 'ict')}
-            {renderMobileSection(solarCategories, 'solar', 'Solar & Power', 'solar')}
             <Link to="/services" className={styles.mobileFlat} onClick={closeAll}>Services</Link>
             <Link to="/about" className={styles.mobileFlat} onClick={closeAll}>About</Link>
             <Link to="/contact" className={styles.mobileFlat} onClick={closeAll}>Contact</Link>
-            <a href={`tel:${PHONE_TEL}`} className={styles.mobileFlat}>
-              Call {PHONE_DISPLAY}
+            {CONTACT.phones.map((p) => (
+              <a key={p.tel} href={`tel:${p.tel}`} className={styles.mobileFlat}>
+                Call {p.display}
+              </a>
+            ))}
+            <a
+              href={CONTACT.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.mobileFlat}
+            >
+              WhatsApp {CONTACT.phones[0].display}
             </a>
           </div>
         </div>

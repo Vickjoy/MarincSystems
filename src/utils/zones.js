@@ -1,4 +1,4 @@
-/** Zone identity helpers — Fire / ICT / Solar */
+/** Zone identity helpers — Fire / ICT */
 
 export const ZONES = {
   fire: {
@@ -37,38 +37,26 @@ export const ZONES = {
       'voice',
     ],
   },
-  solar: {
-    id: 'solar',
-    number: '04',
-    label: 'SOLAR & POWER',
-    shortLabel: 'Solar & Power',
-    tag: 'ZONE 04 · SOLAR & POWER',
-    color: 'var(--zone-solar)',
-    colorToken: '--zone-solar',
-    types: ['solar', 'solar_solutions', 'solar-solutions', 'power'],
-  },
 };
 
-/** Zone 03 is used on the homepage building section for data/voice (same ICT colour). */
-export const ZONE_DATA = {
-  id: 'data',
-  number: '03',
-  label: 'DATA, VOICE & WIRELESS',
-  shortLabel: 'Data & Voice',
-  tag: 'ZONE 03 · DATA & VOICE',
-  color: 'var(--zone-ict)',
-  colorToken: '--zone-ict',
-};
+/**
+ * Solar is no longer offered. Any leftover solar categories coming from the
+ * backend are recognised here so they can be hidden from menus, search and pages.
+ */
+const SOLAR_TYPES = ['solar', 'solar_solutions', 'solar-solutions', 'power'];
 
 export function normalizeType(type) {
   return String(type || '').toLowerCase().trim();
+}
+
+export function isSolarType(type) {
+  return SOLAR_TYPES.includes(normalizeType(type));
 }
 
 export function getZoneFromType(type) {
   const t = normalizeType(type);
   if (ZONES.fire.types.includes(t)) return ZONES.fire;
   if (ZONES.ict.types.includes(t)) return ZONES.ict;
-  if (ZONES.solar.types.includes(t)) return ZONES.solar;
   return ZONES.fire;
 }
 
@@ -78,10 +66,6 @@ export function isFireType(type) {
 
 export function isIctType(type) {
   return ZONES.ict.types.includes(normalizeType(type));
-}
-
-export function isSolarType(type) {
-  return ZONES.solar.types.includes(normalizeType(type));
 }
 
 export function filterByZone(categories, zoneId) {

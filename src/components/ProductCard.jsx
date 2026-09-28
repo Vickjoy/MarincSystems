@@ -10,6 +10,9 @@ import { getZoneFromType } from '../utils/zones';
 /**
  * DatasheetTile — product tile for catalogue and rails.
  * Keeps ProductCard export name for existing imports.
+ *
+ * No prices are shown anywhere on the tile: customers add items to the quote
+ * list and ask for prices on WhatsApp.
  */
 const ProductCard = ({ product, onDelete, zoneType }) => {
   const { token } = useAuth();
@@ -68,13 +71,6 @@ const ProductCard = ({ product, onDelete, zoneType }) => {
   };
 
   const brandSku = [product.brand, product.sku].filter(Boolean).join(' · ');
-  const showPrice =
-    product.price != null &&
-    product.price !== '' &&
-    String(product.price_visibility || 'public').toLowerCase() === 'public';
-  const requestPrice =
-    product.price_visibility &&
-    String(product.price_visibility).toLowerCase() !== 'public';
 
   return (
     <article
@@ -103,15 +99,6 @@ const ProductCard = ({ product, onDelete, zoneType }) => {
         <h3 className={styles.name}>{product.name}</h3>
 
         <StatusLED status={product.status || 'in_stock'} className={styles.stock} />
-
-        {showPrice && (
-          <p className={styles.price}>
-            KES {Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 0 })}
-          </p>
-        )}
-        {requestPrice && !showPrice && (
-          <p className={styles.priceMuted}>Request price</p>
-        )}
 
         <button
           type="button"

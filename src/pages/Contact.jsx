@@ -4,6 +4,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import styles from './Contact.module.css';
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import { FaInstagram, FaFacebookF, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
+import { CONTACT } from '../config/contact';
 
 const API_URL = `${API_BASE_URL}/api`;
 
@@ -62,20 +63,6 @@ const Contact = () => {
   return (
     <div className={styles.contactPage}>
       <Breadcrumbs crumbs={[{ label: 'Home', path: '/' }, { label: 'Contact Us', path: '/contact' }]} />
-
-      {/* Map-first hero */}
-      <div className={styles.mapHero}>
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.7714067757215!2d36.83565!3d-1.3125806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f11003bf54ff9%3A0xe6c55eb36a15217!2sMarinc%20system%20ltd!5e0!3m2!1sen!2ske!4v1789645792222!5m2!1sen!2ske"
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen=""
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Marinc Systems Location"
-        />
-      </div>
 
       <section className={styles.section}>
         <div className={styles.container}>
@@ -185,7 +172,26 @@ const Contact = () => {
                 <FaPhoneAlt className={styles.infoIcon} />
                 <div>
                   <h3 className={styles.infoLabel}>Phone</h3>
-                  <p className={styles.infoText}>+254 721 247 356<br />+254 113 808 073</p>
+                  <p className={styles.infoText}>
+                    {CONTACT.phones.map((p, i) => (
+                      <React.Fragment key={p.tel}>
+                        <a href={`tel:${p.tel}`}>{p.intl}</a>
+                        {i < CONTACT.phones.length - 1 && <br />}
+                      </React.Fragment>
+                    ))}
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <FaWhatsapp className={styles.infoIcon} />
+                <div>
+                  <h3 className={styles.infoLabel}>WhatsApp</h3>
+                  <p className={styles.infoText}>
+                    <a href={CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer">
+                      {CONTACT.phones[0].intl}
+                    </a>
+                  </p>
                 </div>
               </div>
 
@@ -193,7 +199,9 @@ const Contact = () => {
                 <FaEnvelope className={styles.infoIcon} />
                 <div>
                   <h3 className={styles.infoLabel}>Email</h3>
-                  <p className={styles.infoText}>info@marincsystems.co.ke</p>
+                  <p className={styles.infoText}>
+                    <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+                  </p>
                 </div>
               </div>
 
@@ -201,21 +209,21 @@ const Contact = () => {
                 <FaClock className={styles.infoIcon} />
                 <div>
                   <h3 className={styles.infoLabel}>Business Hours</h3>
-                  <p className={styles.infoText}>Mon–Fri, 8am–5pm<br />24/7 emergency call-out</p>
+                  <p className={styles.infoText}>Mon–Fri, 8am–5pm</p>
                 </div>
               </div>
 
               <div className={styles.socialRow}>
-                <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <a href={CONTACT.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                   <FaFacebookF />
                 </a>
-                <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href={CONTACT.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <FaInstagram />
                 </a>
-                <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <a href={CONTACT.social.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                   <FaTiktok />
                 </a>
-                <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                <a href={CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
                   <FaWhatsapp />
                 </a>
               </div>
@@ -223,6 +231,20 @@ const Contact = () => {
           </div>
         </div>
       </section>
+
+      {/* Map now sits below the Get in Touch content */}
+      <div className={styles.mapHero}>
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.7714067757215!2d36.83565!3d-1.3125806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f11003bf54ff9%3A0xe6c55eb36a15217!2sMarinc%20system%20ltd!5e0!3m2!1sen!2ske!4v1789645792222!5m2!1sen!2ske"
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen=""
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Marinc Systems Location"
+        />
+      </div>
     </div>
   );
 };

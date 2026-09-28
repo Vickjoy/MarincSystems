@@ -1,18 +1,16 @@
 import React from 'react';
 import styles from './MobileBottomBar.module.css';
-
-const PHONE = '0721247356';
-const WHATSAPP = '254721247356';
+import { CONTACT } from '../config/contact';
 
 const MobileBottomBar = ({ onQuoteOpen, quoteCount = 0 }) => {
   return (
     <nav className={styles.bar} aria-label="Quick actions">
-      <a className={styles.action} href={`tel:${PHONE}`}>
+      <a className={styles.action} href={`tel:${CONTACT.phones[0].tel}`}>
         <span className={styles.label}>Call</span>
       </a>
       <a
         className={styles.action}
-        href={`https://wa.me/${WHATSAPP}`}
+        href={CONTACT.whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
       >

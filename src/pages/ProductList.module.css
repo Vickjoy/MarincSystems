@@ -18,7 +18,7 @@
 /* Sticky Sidebar */
 .stickySidebar {
   position: sticky;
-  top: var(--space-6); /* bump this if your header is sticky */
+  top: 116px; /* sits below the larger sticky header */
   width: 280px;
   min-width: 280px;
   flex-shrink: 0;
@@ -119,6 +119,16 @@
   letter-spacing: -0.02em;
 }
 
+/* "12 products found" on the search page */
+.resultCount {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 /* Messages */
 .loadingMessage,
 .noProductsMessage {
@@ -204,7 +214,8 @@
     max-height: 200px;
   }
 
-  .categoryTitle {
+  .categoryTitle,
+  .resultCount {
     text-align: center;
   }
 
