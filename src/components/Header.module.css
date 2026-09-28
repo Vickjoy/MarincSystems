@@ -551,7 +551,24 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1200px) {
+@media (max-width: 1100px) {
+  .navLink,
+  .zoneLabel {
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+    font-size: 0.8125rem;
+  }
+
+  .searchDesktop {
+    width: 160px;
+  }
+
+  .quoteBtn {
+    padding: 0 0.7rem;
+  }
+}
+
+@media (max-width: 1024px) {
   .nav,
   .actions {
     display: none;
@@ -564,41 +581,74 @@
 
   .bar {
     grid-template-columns: auto 1fr;
-    height: 76px;
+    height: 72px;
   }
 
   .condensed .bar {
-    height: 68px;
+    height: 64px;
   }
 
   .logo {
-    height: 58px;
+    height: 54px;
   }
 
   .condensed .logo {
-    height: 50px;
+    height: 48px;
   }
 
   .searchRow {
     display: block;
+    padding-bottom: 0.65rem;
+  }
+
+  .topbarAddress {
+    display: none;
   }
 }
 
-@media (max-width: 600px) {
-  .topbarEmail {
+@media (max-width: 640px) {
+  .topbarEmail,
+  .topbarAddress {
     display: none;
   }
 
   .topbarInner {
     padding: 0.4rem var(--gutter);
+    justify-content: space-between;
+  }
+
+  .topbarContact {
+    gap: 0.25rem var(--space-3);
+  }
+
+  .topbarSocial {
+    gap: var(--space-3);
   }
 
   .bar {
-    height: 68px;
+    height: 64px;
+    gap: var(--space-3);
   }
 
   .logo {
-    height: 52px;
+    height: 48px;
+  }
+
+  .quoteBtn {
+    height: 36px;
+    font-size: 0.8125rem;
+  }
+
+  .menuBtn {
+    width: 40px;
+    height: 36px;
+  }
+}
+
+/* Phone: Quote lives in the bottom bar — keep header to logo + menu */
+@media (max-width: 768px) {
+  .mobileControls .quoteBtn {
+    display: none;
   }
 }
 

@@ -478,11 +478,29 @@ a {
    RESPONSIVE
    ========================================================================== */
 
-@media (max-width: 768px) {
-  h1 { font-size: 2.5rem; }
-  h2 { font-size: 1.75rem; }
+@media (max-width: 1024px) {
   :root {
+    --gutter: 20px;
+    --text-3xl: 2.25rem;
+    --text-4xl: 2.75rem;
+    --text-5xl: 3.25rem;
+    --section-padding-y: 4.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  :root {
+    --gutter: 16px;
+    --text-base: 1rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.375rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    --text-5xl: 2.5rem;
     --section-padding-y: var(--section-padding-y-sm);
+    --mobile-bar-height: calc(56px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Room for persistent mobile action bar */

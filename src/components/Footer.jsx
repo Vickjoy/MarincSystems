@@ -10,10 +10,6 @@ const jumpToTop = () => {
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 };
 
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
 // Every footer link goes through this so the next page always opens at the top,
 // even when the visitor is already on that page.
 const FooterLink = ({ to, children }) => (
@@ -34,7 +30,9 @@ const Footer = () => {
 
         <div className={styles.grid}>
           <div className={styles.col}>
-            <ZoneTag zone="fire" label="ZONE 01 · FIRE SAFETY" onDark />
+            <div className={styles.colHead}>
+              <ZoneTag zone="fire" label="ZONE 01 · FIRE SAFETY" onDark />
+            </div>
             <ul className={styles.links}>
               <li><FooterLink to="/category/addressable-fire-alarm-detection-systems">Addressable Fire Alarm</FooterLink></li>
               <li><FooterLink to="/category/conventional-fire-alarm-detection-systems">Conventional Fire Alarm</FooterLink></li>
@@ -43,7 +41,9 @@ const Footer = () => {
           </div>
 
           <div className={styles.col}>
-            <ZoneTag zone="ict" label="ZONE 02 · ICT & SECURITY" onDark />
+            <div className={styles.colHead}>
+              <ZoneTag zone="ict" label="ZONE 02 · ICT & SECURITY" onDark />
+            </div>
             <ul className={styles.links}>
               <li><FooterLink to="/category/giganet-products">Structured Cabling</FooterLink></li>
               <li><FooterLink to="/category/hikvision">Security &amp; Surveillance</FooterLink></li>
@@ -52,73 +52,54 @@ const Footer = () => {
           </div>
 
           <div className={styles.col}>
-            <p className={styles.colLabel}>Company</p>
+            <div className={styles.colHead}>
+              <p className={styles.colLabel}>Company</p>
+            </div>
             <ul className={styles.links}>
               <li><FooterLink to="/">Home</FooterLink></li>
               <li><FooterLink to="/about">About</FooterLink></li>
               <li><FooterLink to="/contact">Contact</FooterLink></li>
             </ul>
-            <div className={styles.social}>
-              <a href={CONTACT.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <FaFacebookF />
-              </a>
-              <a href={CONTACT.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <FaInstagram />
-              </a>
-              <a href={CONTACT.social.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-                <FaTiktok />
-              </a>
-              <a href={CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
-                <FaWhatsapp />
-              </a>
-            </div>
           </div>
 
-          <div className={styles.offices}>
-            <div className={styles.office}>
+          <div className={styles.col}>
+            <div className={styles.colHead}>
               <p className={styles.colLabel}>Mombasa · HQ</p>
-              <p className={styles.address}>
-                Said Bin Seif Building, Meru Road,<br />
-                opposite Fantasy Restaurant
-              </p>
-              {CONTACT.phones.map((p) => (
-                <a key={p.tel} href={`tel:${p.tel}`} className={styles.officeLink}>{p.display}</a>
-              ))}
-              <a
-                href="https://maps.google.com/?q=Said+Bin+Seif+Building+Meru+Road+Mombasa"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.officeLink}
-              >
-                Directions →
-              </a>
             </div>
-            <div className={styles.office}>
-              <p className={styles.colLabel}>Nairobi</p>
-              <p className={styles.address}>
-                Shelter House, Dai Dai Road,<br />
-                South B
-              </p>
-              {CONTACT.phones.map((p) => (
-                <a key={p.tel} href={`tel:${p.tel}`} className={styles.officeLink}>{p.display}</a>
-              ))}
-              <a
-                href="https://maps.google.com/?q=Shelter+House+Dai+Dai+Road+South+B+Nairobi"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.officeLink}
-              >
-                Directions →
-              </a>
-            </div>
+            <p className={styles.address}>
+              Said Bin Seif Building, Meru Road,<br />
+              opposite Fantasy Restaurant
+            </p>
+            {CONTACT.phones.map((p) => (
+              <a key={p.tel} href={`tel:${p.tel}`} className={styles.officeLink}>{p.display}</a>
+            ))}
+            <a
+              href="https://maps.google.com/?q=Said+Bin+Seif+Building+Meru+Road+Mombasa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.officeLink}
+            >
+              Directions →
+            </a>
           </div>
         </div>
 
         <div className={styles.bottom}>
+          <div className={styles.social}>
+            <a href={CONTACT.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <FaFacebookF />
+            </a>
+            <a href={CONTACT.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <FaInstagram />
+            </a>
+            <a href={CONTACT.social.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+              <FaTiktok />
+            </a>
+            <a href={CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+              <FaWhatsapp />
+            </a>
+          </div>
           <p className={styles.copy}>© {year} Marinc Systems Ltd. All rights reserved.</p>
-          <button type="button" className={styles.backToTop} onClick={scrollToTop}>
-            Back to top →
-          </button>
         </div>
       </div>
     </footer>

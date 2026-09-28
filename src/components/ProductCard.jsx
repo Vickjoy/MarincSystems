@@ -98,7 +98,7 @@ const ProductCard = ({ product, onDelete, zoneType }) => {
         {brandSku && <p className={styles.meta}>{brandSku}</p>}
         <h3 className={styles.name}>{product.name}</h3>
 
-        <StatusLED status={product.status || 'in_stock'} className={styles.stock} />
+        <StatusLED status="in_stock" className={styles.stock} />
 
         <button
           type="button"

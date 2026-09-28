@@ -25,7 +25,7 @@ import BImage from '../assets/B.png';
 import FireAlarmImage from '../assets/FireAlarm.jpeg';
 import VoIPImage from '../assets/VoIP.jpg';
 import IPImage from '../assets/IP.jpg';
-import StructuredCablingImage from '../assets/StructuredCabling.jpg';
+import StructuredCablingImage from '../assets/Structured.jpg';
 
 // "Why Marinc" image
 import WhyImage from '../assets/WHY.jpeg';

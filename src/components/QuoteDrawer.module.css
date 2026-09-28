@@ -173,6 +173,22 @@
   margin-top: var(--space-2);
 }
 
+@media (max-width: 480px) {
+  .drawer {
+    width: 100vw;
+  }
+
+  .header,
+  .body {
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+
+  .title {
+    font-size: var(--text-xl);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .drawer {
     animation: none;

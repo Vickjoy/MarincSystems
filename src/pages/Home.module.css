@@ -26,8 +26,9 @@
 .heroPosterContainer {
   position: relative;
   width: 100%;
-  min-height: 70vh;
-  height: 70vh;
+  min-height: 50vh;
+  height: 50vh;
+  max-height: 560px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,7 +62,7 @@
 /* Hero — split layout, flat background per design direction */
 .heroSection {
   position: relative;
-  min-height: 70vh;
+  min-height: 60vh;
   background: var(--color-primary-tint);
   display: flex;
   align-items: center;
@@ -95,7 +96,7 @@
 
 .heroTitle {
   font-family: var(--font-heading);
-  font-size: var(--text-5xl);
+  font-size: clamp(1.75rem, 4vw + 0.5rem, var(--text-5xl));
   font-weight: 800;
   color: var(--color-ink);
   line-height: var(--leading-tight);
@@ -229,6 +230,41 @@
 /* Mobile Hero */
 .heroMobileLayout { display: none; }
 
+@media (max-width: 1024px) {
+  .heroSection {
+    min-height: auto;
+    padding: var(--space-8) var(--gutter);
+  }
+
+  .heroContainer {
+    gap: var(--space-6);
+  }
+
+  .heroPosterContainer {
+    min-height: 42vh;
+    height: 42vh;
+  }
+
+  .partnerLogoLink {
+    flex: 0 0 160px;
+    margin: 0 var(--space-4);
+  }
+
+  .partnerLogo {
+    height: 52px;
+    max-width: 130px;
+  }
+
+  .statContainer {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+
+  .statNumber {
+    font-size: var(--text-3xl);
+  }
+}
+
 @media (max-width: 768px) {
   .heroContent, .heroImageContainer { display: none !important; }
 
@@ -242,18 +278,40 @@
   }
 
   .heroContainer { grid-template-columns: 1fr; padding: 0; }
-  .heroSection { min-height: auto; padding: var(--space-6) var(--space-4); }
+  .heroSection { min-height: auto; padding: var(--space-6) var(--gutter); }
 
-  .heroMobileImages { width: 100%; max-height: 300px; }
-  .heroMobileImages .heroImagesGrid.threeImages { max-height: 300px; gap: 0.75rem; }
-  .heroMobileImages .heroImagesGrid.threeImages .heroImage { max-height: 140px; }
-  .heroMobileImages .heroImagesGrid.twoImages .heroImage { max-height: 140px; }
+  .heroPosterContainer {
+    min-height: 36vh;
+    height: 36vh;
+  }
+
+  .heroMobileImages { width: 100%; max-height: 260px; }
+  .heroMobileImages .heroImagesGrid.threeImages { max-height: 260px; gap: 0.75rem; }
+  .heroMobileImages .heroImagesGrid.threeImages .heroImage { max-height: 120px; }
+  .heroMobileImages .heroImagesGrid.twoImages .heroImage { max-height: 120px; }
 
   .heroMobileContent { display: flex; flex-direction: column; gap: var(--space-3); }
   .heroMobileContent .heroTitle { font-size: var(--text-3xl); }
   .heroMobileContent .heroDescription { font-size: var(--text-base); max-width: 100%; }
 
   .heroMobileNavigation { display: flex; gap: 0.5rem; margin-top: var(--space-2); }
+
+  .heroButtons {
+    justify-content: center;
+  }
+
+  .servicesSection {
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+
+  .whyContainer {
+    padding: 0 var(--gutter);
+  }
+
+  .whyImageWrapper {
+    max-height: 280px;
+  }
 }
 
 /* Partner Brands */
@@ -335,8 +393,14 @@
   letter-spacing: 0.05em;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .statContainer { grid-template-columns: repeat(2, 1fr); gap: var(--space-6); }
+  .statNumber { font-size: var(--text-3xl); }
+}
+
+@media (max-width: 480px) {
+  .statSection { padding: var(--space-6) var(--gutter); }
+  .statNumber { font-size: var(--text-2xl); }
 }
 
 /* Services */
@@ -348,7 +412,7 @@
 .servicesContainer {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 var(--space-5);
+  padding: 0 var(--gutter);
 }
 
 .sectionHeading { max-width: 620px; margin: 0 auto var(--space-8); text-align: center; }
@@ -395,12 +459,20 @@
   border-color: transparent;
 }
 
-.serviceImageWrapper { width: 100%; height: 190px; overflow: hidden; }
+.serviceImageWrapper {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 200px;
+  overflow: hidden;
+  background: var(--color-bg-subtle);
+}
 
 .serviceImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
   transition: transform var(--transition-base);
 }
 
@@ -480,12 +552,16 @@
 .whyImageWrapper {
   border-radius: var(--radius-lg);
   overflow: hidden;
+  max-height: 420px;
+  aspect-ratio: 4 / 3;
+  background: var(--color-bg-subtle);
 }
 
 .whyImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
 }
 

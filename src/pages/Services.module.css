@@ -293,12 +293,25 @@
       grid-template-columns: 1fr;
       gap: var(--space-6);
     }
+
+    .hero {
+      padding: var(--space-8) 0 var(--space-6);
+    }
+
+    .title {
+      max-width: none;
+      font-size: clamp(1.75rem, 5vw, 3rem);
+    }
   
     /* Stepper becomes a horizontal, scrollable strip */
     .stepper {
       position: static;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       padding-bottom: var(--space-2);
+      margin: 0 calc(-1 * var(--gutter));
+      padding-left: var(--gutter);
+      padding-right: var(--gutter);
     }
   
     .stepList {
@@ -326,7 +339,7 @@
     }
   
     .step {
-      scroll-margin-top: 150px;
+      scroll-margin-top: 120px;
     }
   }
   

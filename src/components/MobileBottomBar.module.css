@@ -11,6 +11,7 @@
     left: 0;
     right: 0;
     height: var(--mobile-bar-height);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     background: var(--ink);
     border-top: 1px solid rgba(246, 243, 238, 0.12);
     z-index: 9000;

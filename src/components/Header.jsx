@@ -328,14 +328,13 @@ const Header = () => {
             </a>
 
             <a
-              href="https://www.google.com/maps/search/?api=1&query=Shelter+House+Dai+Dai+Road+South+B+Nairobi"
-              target= "blank"
+              href="https://maps.google.com/?q=Said+Bin+Seif+Building+Meru+Road+Mombasa"
+              target="_blank"
               rel="noopener noreferrer"
-              className={styles.topbarItem}
-
-            >  
+              className={`${styles.topbarItem} ${styles.topbarAddress}`}
+            >
               <FaMapMarkerAlt className={styles.topbarIcon} aria-hidden="true" />
-              Said Bin Seif Building, Meru Road, Opposite Fantasy Restaurant
+              Said Bin Seif Building, Meru Road, Mombasa
             </a>
 
           </div>

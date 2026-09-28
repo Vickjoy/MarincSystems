@@ -134,6 +134,26 @@
   color: var(--red);
 }
 
+@media (max-width: 640px) {
+  .imagePanel {
+    padding: 10%;
+  }
+
+  .body {
+    padding: var(--space-3);
+    gap: 0.45rem;
+  }
+
+  .name {
+    font-size: 0.95rem;
+  }
+
+  .addBtn {
+    font-size: 0.8125rem;
+    padding-top: 0.55rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .image,
   .addGlyph,
