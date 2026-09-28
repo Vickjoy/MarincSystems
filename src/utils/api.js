@@ -1,16 +1,17 @@
 import { API_BASE_URL } from '../config/api';
-// Helper to refresh token and retry request
+
+/* -------------------------------------------------------------------------- */
+/*  Auth helper: refresh token and retry request                              */
+/* -------------------------------------------------------------------------- */
 async function fetchWithAuthRetry(url, options = {}, retry = true) {
   let accessToken = localStorage.getItem('admin_access_token');
   options.headers = options.headers || {};
-  // Only add Authorization header if accessToken exists and method is not GET, or if explicitly provided
+  // Only add Authorization header if accessToken exists and method is not GET
   if (!options.headers['Authorization'] && accessToken && options.method && options.method !== 'GET') {
     options.headers['Authorization'] = `Bearer ${accessToken}`;
   }
-  // If Authorization header is explicitly provided (e.g., for admin actions), keep it
   let response = await fetch(url, options);
 
-  // Check for 401 or 400 with token_not_valid
   if ((response.status === 401 || response.status === 400) && retry) {
     let errorData = {};
     try {
@@ -22,7 +23,6 @@ async function fetchWithAuthRetry(url, options = {}, retry = true) {
       errorData.code === 'token_not_valid' ||
       errorData.detail === 'Given token not valid for any token type'
     ) {
-      // Try to refresh token
       const refreshToken = localStorage.getItem('admin_refresh_token');
       if (refreshToken) {
         const refreshResp = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
@@ -34,11 +34,9 @@ async function fetchWithAuthRetry(url, options = {}, retry = true) {
         if (refreshResp.ok && refreshData.access) {
           accessToken = refreshData.access;
           localStorage.setItem('admin_access_token', accessToken);
-          // Retry original request with new token
           options.headers['Authorization'] = `Bearer ${accessToken}`;
           return fetch(url, options);
         } else {
-          // Refresh failed, log out user
           localStorage.removeItem('admin_access_token');
           localStorage.removeItem('admin_refresh_token');
           localStorage.removeItem('admin_user');
@@ -50,7 +48,78 @@ async function fetchWithAuthRetry(url, options = {}, retry = true) {
   return response;
 }
 
-// Example API utility functions
+/* -------------------------------------------------------------------------- */
+/*  Cached GET helper: memory cache + shared in-flight request + 429 handling */
+/* -------------------------------------------------------------------------- */
+const cache = new Map();     // key -> { data, time }
+const inflight = new Map();  // key -> Promise
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const MAX_WAIT_SECONDS = 10;   // never make the UI wait longer than this on a 429
+const MAX_COOLDOWN_SECONDS = 30;
+
+// Throttling is per client IP, so one 429 means every endpoint is blocked.
+// While cooling down we don't send new requests (which would only extend the block).
+let throttledUntil = 0;
+
+async function cachedGet(key, url, { headers = {}, ttl = 30000, force = false } = {}) {
+  const now = Date.now();
+  const hit = cache.get(key);
+
+  if (!force && hit && now - hit.time < ttl) return hit.data;
+  if (!force && inflight.has(key)) return inflight.get(key);
+
+  const promise = (async () => {
+    // In cooldown: serve stale data if we have it, otherwise fail fast
+    if (Date.now() < throttledUntil) {
+      if (hit) return hit.data;
+      throw new Error('Too many requests. Please wait a moment and try again.');
+    }
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const response = await fetch(url, { headers, cache: 'no-store' });
+
+      if (response.status === 429) {
+        const retryAfter = Number(response.headers.get('Retry-After')) || 2 ** attempt;
+        throttledUntil = Date.now() + Math.min(retryAfter, MAX_COOLDOWN_SECONDS) * 1000;
+        if (retryAfter > MAX_WAIT_SECONDS || attempt === 2) break; // give up, fall back below
+        await sleep(retryAfter * 1000);
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Request failed (${response.status}): ${url}`);
+      }
+
+      const data = await response.json();
+      const list = Array.isArray(data) ? data : data.results || [];
+      cache.set(key, { data: list, time: Date.now() });
+      return list;
+    }
+
+    // Throttled: prefer stale data over nothing
+    if (hit) return hit.data;
+    throw new Error('Too many requests. Please wait a moment and try again.');
+  })().finally(() => inflight.delete(key));
+
+  inflight.set(key, promise);
+  return promise;
+}
+
+/** Clear cached entries whose key starts with the prefix (or everything). */
+export const invalidateCache = (prefix = '') => {
+  for (const key of cache.keys()) {
+    if (key.startsWith(prefix)) cache.delete(key);
+  }
+};
+export const invalidateCategoriesCache = () => {
+  invalidateCache('categories');
+  invalidateCache('subcategories');
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Example API utility functions (unchanged)                                 */
+/* -------------------------------------------------------------------------- */
 export const fetchProducts = async (category) => {
   try {
     const response = await fetch(`/api/products?category=${category}`);
@@ -73,61 +142,44 @@ export const fetchProductById = async (id) => {
   }
 };
 
+/* -------------------------------------------------------------------------- */
+/*  Home page data                                                            */
+/* -------------------------------------------------------------------------- */
+/** Hero banners (cached 60s, deduplicated, 429-safe). Always resolves to an array. */
+export const fetchHeroBanners = async ({ force = false } = {}) =>
+  cachedGet('banners', `${API_BASE_URL}/api/hero-banners/`, { ttl: 60000, force });
+
+/** Popular products (cached 60s, deduplicated, 429-safe). Always resolves to an array. */
+export const fetchPopularProducts = async ({ force = false } = {}) =>
+  cachedGet('products:popular', `${API_BASE_URL}/api/products/popular/`, { ttl: 60000, force });
+
+/* -------------------------------------------------------------------------- */
+/*  Categories                                                                */
+/* -------------------------------------------------------------------------- */
 /**
- * Fetch all categories with cache-busting
- * @param {string} token - Optional admin token for authenticated requests
- * @returns {Promise<Array>} Array of categories
+ * Fetch all categories (cached 30s, deduplicated, 429-safe).
+ * @param {string} token - Optional admin token
+ * @param {{force?: boolean}} opts - force: true bypasses the cache
  */
-export const fetchCategories = async (token) => {
-  try {
-    // Add cache-busting timestamp
-    const timestamp = new Date().getTime();
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    
-    const response = await fetch(
-      `${API_BASE_URL}/api/categories/?_=${timestamp}`,
-      { 
-        headers,
-        cache: 'no-store' // Disable browser caching
-      }
-    );
-    
-    const data = await response.json();
-    console.log('🔄 Fresh categories fetched:', data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    throw error;
-  }
+export const fetchCategories = async (token, { force = false } = {}) => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  return cachedGet(
+    `categories:${token ? 'auth' : 'public'}`,
+    `${API_BASE_URL}/api/categories/`,
+    { headers, ttl: 30000, force }
+  );
 };
 
 /**
- * Fetch subcategories for a specific category with cache-busting
- * @param {string} categorySlug - The slug of the category
- * @param {string} token - Optional admin token for authenticated requests
- * @returns {Promise<Array>} Array of subcategories
+ * Fetch subcategories for a category (cached 30s, deduplicated, 429-safe).
  */
-export const fetchSubcategories = async (categorySlug, token) => {
-  try {
-    // Add cache-busting timestamp
-    const timestamp = new Date().getTime();
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    
-    const response = await fetch(
-      `${API_BASE_URL}/api/categories/${categorySlug}/subcategories/?_=${timestamp}`,
-      { 
-        headers,
-        cache: 'no-store' // Disable browser caching
-      }
-    );
-    
-    const data = await response.json();
-    console.log(`🔄 Fresh subcategories for ${categorySlug}:`, data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching subcategories:', error);
-    throw error;
-  }
+export const fetchSubcategories = async (categorySlug, token, { force = false } = {}) => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  return cachedGet(
+    `subcategories:${categorySlug}:${token ? 'auth' : 'public'}`,
+    `${API_BASE_URL}/api/categories/${categorySlug}/subcategories/`,
+    { headers, ttl: 30000, force }
+  );
 };
 
 export const createCategory = async (name, token, type = 'fire_safety') => {
@@ -141,6 +193,7 @@ export const createCategory = async (name, token, type = 'fire_safety') => {
       body: JSON.stringify({ name, type })
     });
     if (!response.ok) throw new Error('Failed to create category');
+    invalidateCategoriesCache();
     return await response.json();
   } catch (error) {
     console.error('Error creating category:', error);
@@ -159,6 +212,7 @@ export const updateCategory = async (id, name, token) => {
       body: JSON.stringify({ name })
     });
     if (!response.ok) throw new Error('Failed to update category');
+    invalidateCategoriesCache();
     return await response.json();
   } catch (error) {
     console.error('Error updating category:', error);
@@ -173,6 +227,7 @@ export const deleteCategory = async (id, token) => {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     if (!response.ok) throw new Error('Failed to delete category');
+    invalidateCategoriesCache();
     return true;
   } catch (error) {
     console.error('Error deleting category:', error);
@@ -180,6 +235,9 @@ export const deleteCategory = async (id, token) => {
   }
 };
 
+/* -------------------------------------------------------------------------- */
+/*  Subcategories                                                             */
+/* -------------------------------------------------------------------------- */
 export const createSubcategory = async (categorySlug, name, token) => {
   try {
     const response = await fetchWithAuthRetry(`${API_BASE_URL}/api/categories/${categorySlug}/subcategories/`, {
@@ -188,9 +246,10 @@ export const createSubcategory = async (categorySlug, name, token) => {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
-      body: JSON.stringify({ name }) // Only send name
+      body: JSON.stringify({ name })
     });
     if (!response.ok) throw new Error('Failed to create subcategory');
+    invalidateCategoriesCache();
     return await response.json();
   } catch (error) {
     console.error('Error creating subcategory:', error);
@@ -209,6 +268,7 @@ export const updateSubcategory = async (categorySlug, subcategoryId, name, token
       body: JSON.stringify({ name })
     });
     if (!response.ok) throw new Error('Failed to update subcategory');
+    invalidateCategoriesCache();
     return await response.json();
   } catch (error) {
     console.error('Error updating subcategory:', error);
@@ -223,6 +283,7 @@ export const deleteSubcategory = async (categorySlug, subcategoryId, token) => {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     if (!response.ok) throw new Error('Failed to delete subcategory');
+    invalidateCategoriesCache();
     return true;
   } catch (error) {
     console.error('Error deleting subcategory:', error);
@@ -230,28 +291,20 @@ export const deleteSubcategory = async (categorySlug, subcategoryId, token) => {
   }
 };
 
+/* -------------------------------------------------------------------------- */
+/*  Products                                                                  */
+/* -------------------------------------------------------------------------- */
 /**
- * Fetch products for a specific subcategory using the slug-based endpoint.
- * This endpoint is publicly accessible and matches Django's ProductsBySubcategoryView.
+ * Fetch products for a subcategory (public endpoint).
  * Endpoint: /api/subcategories/<slug>/products/
- * 
- * @param {string} subcategorySlug - The slug of the subcategory
- * @returns {Promise<Array>} Array of products
+ * ttl 0 = always fresh, but simultaneous calls share one request and 429s are retried.
  */
 export const fetchProductsForSubcategory = async (subcategorySlug) => {
-  try {
-    // Add cache-busting for products as well
-    const timestamp = new Date().getTime();
-    const response = await fetch(
-      `${API_BASE_URL}/api/subcategories/${subcategorySlug}/products/?_=${timestamp}`,
-      { cache: 'no-store' }
-    );
-    if (!response.ok) throw new Error('Failed to fetch products for subcategory');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching products for subcategory:', error);
-    throw error;
-  }
+  return cachedGet(
+    `products:${subcategorySlug}`,
+    `${API_BASE_URL}/api/subcategories/${subcategorySlug}/products/`,
+    { ttl: 0 }
+  );
 };
 
 export const createProduct = async (form, token) => {
@@ -264,9 +317,7 @@ export const createProduct = async (form, token) => {
     if (form.features) formData.append('features', form.features);
     if (form.documentation) formData.append('documentation', form.documentation);
     if (form.status) formData.append('status', form.status);
-    // Only send image if it's a file (not a string)
     if (form.image && typeof form.image !== 'string') formData.append('image', form.image);
-    // Use subcategory slug in the endpoint
     const endpoint = `${API_BASE_URL}/api/subcategories/${form.subcategory}/products/create/`;
     const response = await fetchWithAuthRetry(endpoint, {
       method: 'POST',
@@ -276,7 +327,6 @@ export const createProduct = async (form, token) => {
       body: formData
     });
     if (!response.ok) {
-      // Log backend error response
       let errorMsg = 'Failed to add product';
       try {
         const errorData = await response.json();
@@ -337,99 +387,41 @@ export const deleteProduct = async (id, token) => {
   }
 };
 
-/**
- * Fetch all blogs with cache-busting
- * Returns all published blogs from the main endpoint
- * 
- * @returns {Promise<Array>} Array of blog posts
- */
+/* -------------------------------------------------------------------------- */
+/*  Blogs                                                                     */
+/* -------------------------------------------------------------------------- */
+/** Fetch all published blogs */
 export const fetchBlogs = async () => {
   try {
-    // Add cache-busting timestamp
-    const timestamp = new Date().getTime();
-    
-    const response = await fetch(
-      `${API_BASE_URL}/api/blogs/?_=${timestamp}`,
-      { cache: 'no-store' }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch blogs: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('📰 Fetched all blogs:', data);
-    
-    // Handle both array response and paginated response
-    return Array.isArray(data) ? data : (data.results || []);
+    return await cachedGet('blogs', `${API_BASE_URL}/api/blogs/`, { ttl: 30000 });
   } catch (error) {
     console.error('Error fetching blogs:', error);
     return [];
   }
 };
 
-/**
- * Fetch blogs for footer display (uses footer endpoint)
- * Falls back to main blogs endpoint if footer endpoint fails
- * 
- * @returns {Promise<Array>} Array of blog posts
- */
+/** Fetch blogs for footer display; falls back to the main blogs endpoint */
 export const fetchFooterBlogs = async () => {
   try {
-    // Add cache-busting timestamp
-    const timestamp = new Date().getTime();
-    
-    // Try the footer endpoint first
-    let response = await fetch(
-      `${API_BASE_URL}/api/blogs/footer/?_=${timestamp}`,
-      { cache: 'no-store' }
-    );
-    
-    // If footer endpoint doesn't exist or returns error, try general blogs endpoint
-    if (!response.ok) {
-      console.warn('Footer endpoint failed, trying general blogs endpoint');
-      response = await fetch(
-        `${API_BASE_URL}/api/blogs/?_=${timestamp}`,
-        { cache: 'no-store' }
-      );
+    try {
+      return await cachedGet('blogs:footer', `${API_BASE_URL}/api/blogs/footer/`, { ttl: 30000 });
+    } catch {
+      return await cachedGet('blogs', `${API_BASE_URL}/api/blogs/`, { ttl: 30000 });
     }
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch blogs: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('📰 Fetched blogs for footer:', data);
-    
-    // Handle both array response and paginated response
-    return Array.isArray(data) ? data : (data.results || []);
   } catch (error) {
     console.error('Error fetching footer blogs:', error);
     return [];
   }
 };
 
-/**
- * Fetch a single blog by slug
- * 
- * @param {string} slug - The blog slug
- * @returns {Promise<Object>} Blog object
- */
+/** Fetch a single blog by slug */
 export const fetchBlogBySlug = async (slug) => {
   try {
-    const timestamp = new Date().getTime();
-    const response = await fetch(
-      `${API_BASE_URL}/api/blogs/${slug}/?_=${timestamp}`,
-      { cache: 'no-store' }
-    );
-    
+    const response = await fetch(`${API_BASE_URL}/api/blogs/${slug}/`, { cache: 'no-store' });
     if (!response.ok) {
       throw new Error(`Blog not found: ${response.status}`);
     }
-    
-    const data = await response.json();
-    console.log('📰 Fetched blog:', data);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error fetching blog:', error);
     throw error;

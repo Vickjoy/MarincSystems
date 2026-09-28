@@ -275,14 +275,12 @@
   50% { opacity: 0.5; }
 }
 
-/* Mobile Responsiveness */
+/* Mobile: bottom action bar replaces FAB */
 @media (max-width: 768px) {
   .floatingContainer {
-    bottom: 20px;
-    right: 20px;
-    gap: 12px;
+    display: none;
   }
-  
+
   .floatingButton {
     width: 56px;
     height: 56px;

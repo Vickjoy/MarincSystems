@@ -1,7 +1,10 @@
-import { API_BASE_URL } from '../config/api';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchPopularProducts } from '../utils/api';
 import styles from './PopularProductsCarousel.module.css';
+
+const AUTOPLAY_MS = 4000;
+const RESUME_MS = 10000;
 
 const PopularProductsCarousel = () => {
   const [products, setProducts] = useState([]);
@@ -10,105 +13,77 @@ const PopularProductsCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const carouselRef = useRef(null);
+  const resumeTimer = useRef(null);
+  const mounted = useRef(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log('🔄 PopularProductsCarousel mounted, fetching products...');
-    fetchPopularProducts();
-  }, []);
-
-  const fetchPopularProducts = async () => {
+  const loadProducts = useCallback(async (force = false) => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log(`📡 Fetching from: ${API_BASE_URL}/api/products/popular`);
-      const response = await fetch(`${API_BASE_URL}/api/products/popular`);
-      
-      console.log('📊 Response status:', response.status);
-      console.log('📊 Response ok:', response.ok);
-      
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
-      }
-      
-      const contentType = response.headers.get('content-type');
-      console.log('📋 Content-Type:', contentType);
-      
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('❌ Non-JSON response:', text.substring(0, 200));
-        throw new Error('Server returned non-JSON response');
-      }
-      
-      const data = await response.json();
-      console.log('✅ Data received:', data);
-      console.log('📦 Number of products:', data.length);
-      
-      if (!Array.isArray(data)) {
-        console.error('❌ Data is not an array:', typeof data);
-        throw new Error('Invalid data format received from server');
-      }
-      
-      setProducts(data);
-      console.log('✅ Products set in state:', data.length);
-      
-    } catch (error) {
-      console.error('❌ Error fetching popular products:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        stack: error.stack
-      });
-      setError(error.message);
+      const list = await fetchPopularProducts({ force });
+      if (!mounted.current) return;
+      setProducts(list);
+      setCurrentIndex(0);
+    } catch (err) {
+      if (!mounted.current) return;
+      console.error('Error fetching popular products:', err);
+      setError(err.message);
     } finally {
-      setLoading(false);
-      console.log('✅ Loading complete');
+      if (mounted.current) setLoading(false);
     }
-  };
+  }, []);
 
-  // Auto-play carousel
+  // Initial fetch (shared/cached in api.js, so StrictMode double-mount costs one request)
   useEffect(() => {
-    if (!isAutoPlaying || products.length === 0) return;
+    mounted.current = true;
+    loadProducts();
+    return () => {
+      mounted.current = false;
+    };
+  }, [loadProducts]);
+
+  // Auto-play
+  useEffect(() => {
+    if (!isAutoPlaying || products.length < 2) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => 
-        prevIndex === products.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 4000);
+      setCurrentIndex((prev) => (prev === products.length - 1 ? 0 : prev + 1));
+    }, AUTOPLAY_MS);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying, products.length]);
 
+  // Clear pending "resume autoplay" timer on unmount
+  useEffect(() => () => clearTimeout(resumeTimer.current), []);
+
+  // Pause autoplay after user interaction, resume later (one timer only)
+  const pauseAutoPlay = () => {
+    setIsAutoPlaying(false);
+    clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setIsAutoPlaying(true), RESUME_MS);
+  };
+
   const goToSlide = (index) => {
     setCurrentIndex(index);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    pauseAutoPlay();
   };
 
   const goToPrevious = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? products.length - 1 : prevIndex - 1
-    );
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    setCurrentIndex((prev) => (prev === 0 ? products.length - 1 : prev - 1));
+    pauseAutoPlay();
   };
 
   const goToNext = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === products.length - 1 ? 0 : prevIndex + 1
-    );
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    setCurrentIndex((prev) => (prev === products.length - 1 ? 0 : prev + 1));
+    pauseAutoPlay();
   };
 
   const handleProductClick = (productSlug) => {
     navigate(`/product/${productSlug}`);
   };
 
-  console.log('🎨 Render - Loading:', loading, 'Error:', error, 'Products:', products.length);
-
   if (loading) {
-    console.log('🔄 Rendering loading state');
     return (
       <section className={styles.carouselSection}>
         <div className={styles.container}>
@@ -122,13 +97,12 @@ const PopularProductsCarousel = () => {
   }
 
   if (error) {
-    console.log('❌ Rendering error state:', error);
     return (
       <section className={styles.carouselSection}>
         <div className={styles.container}>
           <div className={styles.error}>
             <p>Unable to load popular products: {error}</p>
-            <button onClick={fetchPopularProducts} className={styles.retryButton}>
+            <button onClick={() => loadProducts(true)} className={styles.retryButton}>
               Retry
             </button>
           </div>
@@ -138,7 +112,6 @@ const PopularProductsCarousel = () => {
   }
 
   if (products.length === 0) {
-    console.log('⚠️ No products to display');
     return (
       <section className={styles.carouselSection}>
         <div className={styles.container}>
@@ -150,8 +123,6 @@ const PopularProductsCarousel = () => {
     );
   }
 
-  console.log('✅ Rendering carousel with', products.length, 'products');
-
   return (
     <section className={styles.carouselSection}>
       <div className={styles.container}>
@@ -161,7 +132,7 @@ const PopularProductsCarousel = () => {
 
         <div className={styles.carouselWrapper} ref={carouselRef}>
           {/* Navigation Arrows */}
-          <button 
+          <button
             className={`${styles.navButton} ${styles.navButtonLeft}`}
             onClick={goToPrevious}
             aria-label="Previous product"
@@ -171,7 +142,7 @@ const PopularProductsCarousel = () => {
             </svg>
           </button>
 
-          <button 
+          <button
             className={`${styles.navButton} ${styles.navButtonRight}`}
             onClick={goToNext}
             aria-label="Next product"
@@ -182,32 +153,25 @@ const PopularProductsCarousel = () => {
           </button>
 
           {/* Carousel Track */}
-          <div 
+          <div
             className={styles.carouselTrack}
-            style={{
-              transform: `translateX(-${currentIndex * 100}%)`
-            }}
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
             {products.map((product) => (
-              <div 
-                key={product.id} 
-                className={styles.carouselSlide}
-              >
-                <div 
+              <div key={product.id} className={styles.carouselSlide}>
+                <div
                   className={styles.productCard}
                   onClick={() => handleProductClick(product.slug)}
                 >
                   <div className={styles.imageWrapper}>
-                    <img 
-                      src={product.image || '/placeholder.png'} 
+                    <img
+                      src={product.image || '/placeholder.png'}
                       alt={product.name}
                       className={styles.productImage}
                       onError={(e) => {
-                        console.log('❌ Image failed to load:', product.image);
+                        // Prevent an infinite onError loop if the placeholder is also missing
+                        e.target.onerror = null;
                         e.target.src = '/placeholder.png';
-                      }}
-                      onLoad={() => {
-                        console.log('✅ Image loaded:', product.name);
                       }}
                     />
                     <div className={styles.popularBadge}>
@@ -223,10 +187,10 @@ const PopularProductsCarousel = () => {
                       <span className={styles.brand}>{product.brand}</span>
                     )}
                     <h3 className={styles.productName}>{product.name}</h3>
-                    
+
                     {product.price && !product.price_requires_login && (
                       <div className={styles.price}>
-                        KES {Number(product.price).toLocaleString('en-KE', { 
+                        KES {Number(product.price).toLocaleString('en-KE', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2
                         })}

@@ -1,51 +1,42 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import SearchBar from './SearchBar';
 import CompanyLogo from '../assets/MarincLogo.jpg';
 import styles from './Header.module.css';
 import { fetchCategories, fetchSubcategories } from '../utils/api';
 import { useCart } from '../context/CartContext';
-import CartModal from './CartModal';
-import {
-  FaPhoneAlt,
-  FaMapMarkerAlt,
-  FaEnvelope,
-  FaChevronDown,
-  FaBars,
-  FaTimes,
-  FaChevronRight,
-  FaShoppingCart,
-} from 'react-icons/fa';
-import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
+import QuoteDrawer from './QuoteDrawer';
+import MobileBottomBar from './MobileBottomBar';
+import ZoneTag from './ZoneTag';
+import { filterByZone, ZONES } from '../utils/zones';
+import { FaChevronDown, FaBars, FaTimes, FaChevronRight, FaPhoneAlt } from 'react-icons/fa';
+
+const PHONE_DISPLAY = '0721 247 356';
+const PHONE_TEL = '0721247356';
 
 const Header = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [categories, setCategories] = useState([]);
   const [subcategoriesMap, setSubcategoriesMap] = useState({});
-  const [expandedCategories, setExpandedCategories] = useState(new Set());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileExpandedCategory, setMobileExpandedCategory] = useState(null);
   const [mobileExpandedSubcategory, setMobileExpandedSubcategory] = useState(null);
-  const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(false);
   const navigate = useNavigate();
-  const allCategoriesRef = useRef();
   const fireRef = useRef();
   const ictRef = useRef();
-  const solarRef = useRef();
-  const { cartItems } = useCart();
-
-  const [cartOpen, setCartOpen] = useState(false);
-  const [isHoveringCartIcon, setIsHoveringCartIcon] = useState(false);
-  const [isHoveringCartModal, setIsHoveringCartModal] = useState(false);
-  const cartTimeoutRef = useRef(null);
+  const loadingSubs = useRef(new Set()); // slugs currently being fetched
+  const { cartItems, getTotalItems } = useCart();
+  const quoteCount = getTotalItems ? getTotalItems() : cartItems.length;
 
   useEffect(() => {
     const loadCategories = async () => {
       try {
         const data = await fetchCategories();
         setCategories(Array.isArray(data) ? data : []);
-      } catch (e) {
-        setCategories([]);
+      } catch (err) {
+        console.error('Error loading categories:', err);
+        // Keep whatever we already have instead of wiping the menu
       }
     };
     loadCategories();
@@ -55,38 +46,18 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const loadSubcategories = async (categorySlug) => {
-    if (subcategoriesMap[categorySlug]) return;
-    try {
-      const subs = await fetchSubcategories(categorySlug);
-      setSubcategoriesMap((prev) => ({
-        ...prev,
-        [categorySlug]: Array.isArray(subs) ? subs : [],
-      }));
-    } catch (e) {
-      setSubcategoriesMap((prev) => ({
-        ...prev,
-        [categorySlug]: [],
-      }));
-    }
-  };
 
   useEffect(() => {
     const handleClick = (e) => {
       if (
-        allCategoriesRef.current && !allCategoriesRef.current.contains(e.target) &&
         fireRef.current && !fireRef.current.contains(e.target) &&
-        ictRef.current && !ictRef.current.contains(e.target) &&
-        solarRef.current && !solarRef.current.contains(e.target)
+        ictRef.current && !ictRef.current.contains(e.target)
       ) {
         setOpenDropdown(null);
-        setExpandedCategories(new Set());
-        setHoveredCategory(null);
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -94,102 +65,55 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (mobileMenuOpen && !e.target.closest(`.${styles.mobileMenu}`) && !e.target.closest(`.${styles.mobileHamburger}`)) {
-        setMobileMenuOpen(false);
-        setMobileExpandedCategory(null);
-        setMobileExpandedSubcategory(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
   }, [mobileMenuOpen]);
 
-  useEffect(() => {
-    document.body.style.overflow = mobileMenuOpen ? 'hidden' : 'unset';
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [mobileMenuOpen]);
-
-  const handleCartIconMouseEnter = () => {
-    if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
-    setIsHoveringCartIcon(true);
-    setCartOpen(true);
+  const loadSubcategories = async (categorySlug) => {
+    if (subcategoriesMap[categorySlug] || loadingSubs.current.has(categorySlug)) return;
+    loadingSubs.current.add(categorySlug);
+    try {
+      const subs = await fetchSubcategories(categorySlug);
+      setSubcategoriesMap((prev) => ({
+        ...prev,
+        [categorySlug]: Array.isArray(subs) ? subs : [],
+      }));
+    } catch (err) {
+      // Do NOT store [] here. Leaving it unset lets the next menu open retry.
+      console.error(`Error loading subcategories for ${categorySlug}:`, err);
+    } finally {
+      loadingSubs.current.delete(categorySlug);
+    }
   };
 
-  const handleCartIconMouseLeave = () => {
-    setIsHoveringCartIcon(false);
-    cartTimeoutRef.current = setTimeout(() => {
-      if (!isHoveringCartModal) setCartOpen(false);
-    }, 300);
-  };
-
-  const handleCartModalMouseEnter = () => {
-    if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
-    setIsHoveringCartModal(true);
-  };
-
-  const handleCartModalMouseLeave = () => {
-    setIsHoveringCartModal(false);
-    cartTimeoutRef.current = setTimeout(() => {
-      if (!isHoveringCartIcon) setCartOpen(false);
-    }, 300);
-  };
-
-  const handleCloseCart = () => {
-    setCartOpen(false);
-    setIsHoveringCartIcon(false);
-    setIsHoveringCartModal(false);
-    if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
-  };
-
-  const fireCategories = categories.filter((cat) =>
-    ['fire_safety', 'fire', 'fire-safety', 'firesafety'].includes(String(cat.type || '').toLowerCase())
-  );
-
-  const ictCategories = categories.filter((cat) =>
-    ['ict', 'telecom', 'telecommunication'].includes(String(cat.type || '').toLowerCase())
-  );
-
-  const solarCategories = categories.filter((cat) =>
-    ['solar', 'solar_solutions', 'solar-solutions'].includes(String(cat.type || '').toLowerCase())
-  );
-
-  const allCategoriesCombined = [...fireCategories, ...ictCategories, ...solarCategories];
+  const fireCategories = filterByZone(categories, 'fire');
+  const ictCategories = filterByZone(categories, 'ict');
+  const solarCategories = filterByZone(categories, 'solar');
 
   const handleDropdownToggle = (dropdownName) => {
     const isOpen = openDropdown === dropdownName;
     setOpenDropdown(isOpen ? null : dropdownName);
-    setExpandedCategories(new Set());
-    setHoveredCategory(null);
-
     if (!isOpen) {
-      const categoryList =
-        dropdownName === 'all' ? allCategoriesCombined :
-        dropdownName === 'fire' ? fireCategories :
-        dropdownName === 'ict' ? ictCategories :
-        dropdownName === 'solar' ? solarCategories : [];
-
-      categoryList.forEach((cat) => loadSubcategories(cat.slug));
+      const list = dropdownName === 'fire' ? fireCategories : ictCategories;
+      // Only the categories actually shown in the mega menu (first 9)
+      list.slice(0, 9).forEach((cat) => loadSubcategories(cat.slug));
     }
   };
 
-  const handleCategoryClick = (categorySlug) => {
+  const closeAll = () => {
     setOpenDropdown(null);
-    setExpandedCategories(new Set());
-    setHoveredCategory(null);
     setMobileMenuOpen(false);
     setMobileExpandedCategory(null);
     setMobileExpandedSubcategory(null);
+  };
+
+  const handleCategoryClick = (categorySlug) => {
+    closeAll();
     navigate(`/category/${categorySlug}`);
   };
 
   const handleSubcategoryClick = (categorySlug, subcategorySlug) => {
-    setOpenDropdown(null);
-    setExpandedCategories(new Set());
-    setHoveredCategory(null);
-    setMobileMenuOpen(false);
-    setMobileExpandedCategory(null);
-    setMobileExpandedSubcategory(null);
+    closeAll();
     navigate(`/category/${categorySlug}`, { state: { selectedSubcategory: subcategorySlug } });
   };
 
@@ -200,101 +124,126 @@ const Header = () => {
     } else {
       setMobileExpandedCategory(categoryType);
       setMobileExpandedSubcategory(null);
-      const categoryList =
-        categoryType === 'fire' ? fireCategories :
-        categoryType === 'ict' ? ictCategories :
-        categoryType === 'solar' ? solarCategories : [];
-      categoryList.forEach((cat) => loadSubcategories(cat.slug));
+      // Subcategories for mobile are loaded lazily when a category row is expanded
     }
   };
 
-  const handleMobileSubcategoryToggle = (categorySlug) => {
-    if (mobileExpandedSubcategory === categorySlug) {
-      setMobileExpandedSubcategory(null);
-    } else {
-      setMobileExpandedSubcategory(categorySlug);
-      loadSubcategories(categorySlug);
-    }
+  const handleMobileSubToggle = (catSlug) => {
+    const next = mobileExpandedSubcategory === catSlug ? null : catSlug;
+    setMobileExpandedSubcategory(next);
+    if (next) loadSubcategories(catSlug);
   };
 
-  const handleDropdownMouseLeave = () => {
-    setOpenDropdown(null);
-    setHoveredCategory(null);
-  };
-
-  const renderDesktopSimpleDropdown = (dropdownCategories, isOpen) => {
+  const renderMegaMenu = (zoneId, categoryList, isOpen) => {
     if (!isOpen) return null;
+    const zone = ZONES[zoneId];
+    const columns = categoryList.slice(0, 9);
 
     return (
-      <div className={styles.megaDropdown} onMouseLeave={handleDropdownMouseLeave}>
-        <div className={styles.simpleContainer}>
-          {dropdownCategories.map((cat) => (
-            <button
-              key={cat.id}
-              className={styles.simpleDropdownItem}
-              onClick={() => handleCategoryClick(cat.slug)}
-            >
-              {cat.name}
-            </button>
-          ))}
+      <div
+        className={styles.megaMenu}
+        style={{ '--zone-color': zone.color }}
+        onMouseLeave={() => setOpenDropdown(null)}
+      >
+        <div className={styles.megaRule} aria-hidden="true" />
+        <div className={styles.megaInner}>
+          <ZoneTag zone={zoneId} className={styles.megaTag} />
+          <div className={styles.megaColumns}>
+            {columns.map((cat) => {
+              const subs = subcategoriesMap[cat.slug] || [];
+              return (
+                <div key={cat.id} className={styles.megaCol}>
+                  <button
+                    type="button"
+                    className={styles.megaCat}
+                    onClick={() => handleCategoryClick(cat.slug)}
+                  >
+                    {cat.name}
+                    <span className={styles.megaArrow} aria-hidden="true">→</span>
+                  </button>
+                  {subs.length > 0 && (
+                    <ul className={styles.megaSubs}>
+                      {subs.slice(0, 6).map((sub) => (
+                        <li key={sub.id}>
+                          <button
+                            type="button"
+                            className={styles.megaSub}
+                            onClick={() => handleSubcategoryClick(cat.slug, sub.slug)}
+                          >
+                            {sub.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {categoryList.length === 0 && (
+            <p className={styles.megaEmpty}>Categories loading…</p>
+          )}
         </div>
       </div>
     );
   };
 
-  const renderMobileCategorySection = (categoryList, categoryType, title) => (
-    <div key={categoryType} className={styles.mobileCategorySection}>
+  const renderMobileSection = (categoryList, categoryType, title, zoneId) => (
+    <div key={categoryType} className={styles.mobileSection}>
       <button
-        className={`${styles.mobileCategoryButton} ${mobileExpandedCategory === categoryType ? styles.expanded : ''}`}
+        type="button"
+        className={`${styles.mobileRow} ${mobileExpandedCategory === categoryType ? styles.mobileRowOpen : ''}`}
+        style={{ '--zone-color': ZONES[zoneId]?.color }}
         onClick={() => handleMobileCategoryClick(categoryType)}
       >
-        <span>{title}</span>
-        <FaChevronRight className={`${styles.mobileChevron} ${mobileExpandedCategory === categoryType ? styles.rotated : ''}`} />
+        <span className={styles.mobileRowLabel}>
+          <span className={styles.mobileSwatch} aria-hidden="true" />
+          {title}
+        </span>
+        <FaChevronRight
+          className={`${styles.mobileChevron} ${mobileExpandedCategory === categoryType ? styles.rotated : ''}`}
+        />
       </button>
 
       {mobileExpandedCategory === categoryType && (
-        <div className={styles.mobileSubcategoryContainer}>
+        <div className={styles.mobileExpand}>
           {categoryList.map((cat) => {
-            const categorySubcategories = subcategoriesMap[cat.slug] || [];
-            const hasSubcategories = categorySubcategories.length > 0;
-
+            const subs = subcategoriesMap[cat.slug] || [];
             return (
-              <div key={cat.id} className={styles.mobileCategoryWrapper}>
-                <div className={styles.mobileCategoryRow}>
+              <div key={cat.id} className={styles.mobileCatBlock}>
+                <div className={styles.mobileCatRow}>
                   <button
-                    className={styles.mobileCategoryName}
+                    type="button"
+                    className={styles.mobileCatName}
                     onClick={() => handleCategoryClick(cat.slug)}
                   >
                     {cat.name}
                   </button>
-
-                  {hasSubcategories && (
-                    <button
-                      className={styles.mobileSubcategoryToggle}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMobileSubcategoryToggle(cat.slug);
-                      }}
-                    >
-                      <FaChevronRight
-                        className={`${styles.mobileSubChevron} ${mobileExpandedSubcategory === cat.slug ? styles.rotated : ''}`}
-                      />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className={styles.mobileSubToggle}
+                    onClick={() => handleMobileSubToggle(cat.slug)}
+                    aria-label={`Expand ${cat.name}`}
+                  >
+                    <FaChevronRight
+                      className={`${styles.mobileChevron} ${mobileExpandedSubcategory === cat.slug ? styles.rotated : ''}`}
+                    />
+                  </button>
                 </div>
-
-                {hasSubcategories && mobileExpandedSubcategory === cat.slug && (
-                  <div className={styles.mobileSubcategoryList}>
-                    {categorySubcategories.map((sub) => (
-                      <button
-                        key={sub.id}
-                        className={styles.mobileSubcategoryItem}
-                        onClick={() => handleSubcategoryClick(cat.slug, sub.slug)}
-                      >
-                        {sub.name}
-                      </button>
+                {mobileExpandedSubcategory === cat.slug && (
+                  <ul className={styles.mobileSubList}>
+                    {subs.map((sub) => (
+                      <li key={sub.id}>
+                        <button
+                          type="button"
+                          className={styles.mobileSubItem}
+                          onClick={() => handleSubcategoryClick(cat.slug, sub.slug)}
+                        >
+                          {sub.name}
+                        </button>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
               </div>
             );
@@ -305,212 +254,143 @@ const Header = () => {
   );
 
   return (
-    <header className={styles.header}>
-      {/* Mobile Header Layout */}
-      <div className={styles.mobileHeaderLayout}>
-        <div className={styles.mobileTopBar}>
-          <div className={styles.mobileTopBarContent}>
-            <div className={styles.contactInfo}>
-              <span className={styles.contactItem}>
-                <FaMapMarkerAlt />
-                Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant
-              </span>
-              <span className={styles.contactItem}>
-                <FaPhoneAlt />
-                0721247356 / 0113808073
-              </span>
-              <span className={styles.contactItem}>
-                <FaEnvelope />
-                info@marincsystems.co.ke
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.mobileLogoRow}>
-          <Link to="/">
-            <img src={CompanyLogo} alt="Marinc Systems Logo" className={styles.mobileLogo} />
-          </Link>
-        </div>
-
-        <div className={styles.mobileSearchRow}>
-          <button
-            className={styles.mobileHamburger}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <FaBars />
-          </button>
-
-          <div className={styles.mobileSearchContainer}>
-            <SearchBar />
-          </div>
-
-          <button onClick={() => setCartOpen(true)} className={styles.mobileCartButton}>
-            <FaShoppingCart />
-            {cartItems.length > 0 && (
-              <span className={styles.cartBadge}>{cartItems.length}</span>
-            )}
-          </button>
-        </div>
+    <>
+      {/* Optional campaign / emergency strip */}
+      <div className={styles.emergencyStrip}>
+        <span className={styles.emergencyDot} aria-hidden="true" />
+        <span>24-HOUR CALL-OUT · </span>
+        <a href={`tel:${PHONE_TEL}`}>{PHONE_DISPLAY}</a>
       </div>
 
-      {/* Desktop Header — 2-tier: utility strip + single main bar (logo | nav | actions) */}
-      <div className={styles.desktopHeaderLayout}>
-        <div className={styles.topBar}>
-          <div className={styles.topBarContent}>
-            <span>
-              <FaMapMarkerAlt style={{ marginRight: 6 }} />
-              Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant
-            </span>
-            <span>
-              <FaPhoneAlt style={{ marginRight: 6 }} />
-              0721247356 / 0113808073
-            </span>
-            <span>
-              <FaEnvelope style={{ marginRight: 6 }} />
-              info@marincsystems.co.ke
-            </span>
-            <div className={styles.topBarSocial}>
-              <a href="https://www.facebook.com/share/1EdzJithHP/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <FaFacebookF />
-              </a>
-              <a href="https://www.instagram.com/marincsystemske?stkn=MTE5ODJxcXlmaHcxMw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <FaInstagram />
-              </a>
-              <a href="https://www.tiktok.com/@marincsystemske?_r=1&_t=ZS-99ntiuRObX5" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-                <FaTiktok />
-              </a>
-              <a href="https://wa.me/254113808073" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
-                <FaWhatsapp />
-              </a>
-            </div>
-          </div>
-        </div>
+      <header className={`${styles.header} ${scrolled ? styles.condensed : ''}`}>
+        <div className={styles.bar}>
+          <Link to="/" className={styles.logoLink} onClick={closeAll}>
+            <img src={CompanyLogo} alt="Marinc Systems" className={styles.logo} />
+          </Link>
 
-        <div className={styles.mainHeader}>
-          <div className={styles.logoContainer}>
-            <Link to="/">
-              <img src={CompanyLogo} alt="Marinc Systems Logo" className={styles.logo} />
-            </Link>
-          </div>
-
-          <nav className={styles.navigation}>
+          <nav className={styles.nav} aria-label="Primary">
             <ul className={styles.navList}>
-              <li><Link to="/" className={styles.navLink}>Home</Link></li>
-
-              <li ref={fireRef} className={styles.dropdownContainer}>
+              <li ref={fireRef} className={styles.navItem}>
                 <button
-                  className={styles.dropdownButton}
+                  type="button"
+                  className={`${styles.navLink} ${styles.zoneFire}`}
                   onClick={() => handleDropdownToggle('fire')}
+                  aria-expanded={openDropdown === 'fire'}
                 >
                   Fire Safety
-                  <FaChevronDown className={styles.navChevron} />
+                  <FaChevronDown className={styles.chevron} />
                 </button>
-                {renderDesktopSimpleDropdown(fireCategories, openDropdown === 'fire')}
+                {renderMegaMenu('fire', fireCategories, openDropdown === 'fire')}
               </li>
 
-              <li ref={ictRef} className={styles.dropdownContainer}>
+              <li ref={ictRef} className={styles.navItem}>
                 <button
-                  className={styles.dropdownButton}
+                  type="button"
+                  className={`${styles.navLink} ${styles.zoneIct}`}
                   onClick={() => handleDropdownToggle('ict')}
+                  aria-expanded={openDropdown === 'ict'}
                 >
-                  ICT & Telecom
-                  <FaChevronDown className={styles.navChevron} />
+                  ICT &amp; Security
+                  <FaChevronDown className={styles.chevron} />
                 </button>
-                {renderDesktopSimpleDropdown(ictCategories, openDropdown === 'ict')}
+                {renderMegaMenu('ict', ictCategories, openDropdown === 'ict')}
               </li>
 
-              <li ref={solarRef} className={styles.dropdownContainer}>
-                <Link to="/category/solar-power-solutions" className={styles.navLink}>
-                  Solar
+              <li className={styles.navItem}>
+                <Link
+                  to="/category/solar-power-solutions"
+                  className={`${styles.navLink} ${styles.zoneSolar}`}
+                >
+                  Solar &amp; Power
                 </Link>
               </li>
 
-              <li><Link to="/contact" className={styles.navLink}>Contact Us</Link></li>
+              <li className={styles.navItem}>
+                <Link to="/services" className={styles.navLink}>Services</Link>
+              </li>
+
+              <li className={styles.navItem}>
+                <Link to="/about" className={styles.navLink}>About</Link>
+              </li>
             </ul>
           </nav>
 
-          <div className={styles.headerActions}>
-            <div ref={allCategoriesRef} className={styles.allCategoriesWrapper}>
-              <button
-                className={styles.allCategoriesButton}
-                onClick={() => handleDropdownToggle('all')}
-              >
-                All Categories
-                <FaChevronDown className={styles.allCategoriesChevron} />
-              </button>
-              {renderDesktopSimpleDropdown(allCategoriesCombined, openDropdown === 'all')}
-            </div>
-
-            <SearchBar />
-
+          <div className={styles.actions}>
+            <a href={`tel:${PHONE_TEL}`} className={styles.phone}>
+              <FaPhoneAlt className={styles.phoneIcon} aria-hidden="true" />
+              {PHONE_DISPLAY}
+            </a>
             <button
-              onMouseEnter={handleCartIconMouseEnter}
-              onMouseLeave={handleCartIconMouseLeave}
-              className={styles.cartButton}
-              style={{ position: 'relative' }}
+              type="button"
+              className={styles.quoteBtn}
+              onClick={() => setQuoteOpen(true)}
             >
-              <FaShoppingCart />
-              {cartItems.length > 0 && (
-                <span className={styles.cartBadge}>{cartItems.length}</span>
+              Quote List
+              {quoteCount > 0 && (
+                <span className={styles.quoteCount}>{quoteCount}</span>
+              )}
+            </button>
+          </div>
+
+          {/* Mobile controls */}
+          <div className={styles.mobileControls}>
+            <button
+              type="button"
+              className={styles.menuBtn}
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <FaBars />
+            </button>
+            <button
+              type="button"
+              className={styles.quoteBtn}
+              onClick={() => setQuoteOpen(true)}
+            >
+              Quote
+              {quoteCount > 0 && (
+                <span className={styles.quoteCount}>{quoteCount}</span>
               )}
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {mobileMenuOpen && <div className={styles.mobileOverlay} />}
-
-      <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
-        <div className={styles.mobileMenuHeader}>
-          <h3>Menu</h3>
-          <button
-            className={styles.mobileMenuClose}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <FaTimes />
-          </button>
-        </div>
-
-        <div className={styles.mobileMenuContent}>
-          <Link
-            to="/"
-            className={styles.mobileNavLink}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Home
-          </Link>
-
-          {renderMobileCategorySection(fireCategories, 'fire', 'Fire Safety Products & Services')}
-          {renderMobileCategorySection(ictCategories, 'ict', 'ICT/Telecommunication Products & Services')}
-
-          <Link
-            to="/category/solar-power-solutions"
-            className={styles.mobileNavLink}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Solar Power Solutions
-          </Link>
-
-          <Link
-            to="/contact"
-            className={styles.mobileNavLink}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Contact Us
-          </Link>
-        </div>
-      </div>
-
-      {cartOpen && (
-        <div
-          onMouseEnter={handleCartModalMouseEnter}
-          onMouseLeave={handleCartModalMouseLeave}
-        >
-          <CartModal onClose={handleCloseCart} />
+      {/* Full-screen mobile menu */}
+      {mobileMenuOpen && (
+        <div className={styles.mobileMenu} role="dialog" aria-modal="true" aria-label="Menu">
+          <div className={styles.mobileMenuHeader}>
+            <img src={CompanyLogo} alt="" className={styles.mobileMenuLogo} />
+            <button
+              type="button"
+              className={styles.mobileClose}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <FaTimes />
+            </button>
+          </div>
+          <div className={styles.mobileMenuBody}>
+            {renderMobileSection(fireCategories, 'fire', 'Fire Safety', 'fire')}
+            {renderMobileSection(ictCategories, 'ict', 'ICT & Security', 'ict')}
+            {renderMobileSection(solarCategories, 'solar', 'Solar & Power', 'solar')}
+            <Link to="/services" className={styles.mobileFlat} onClick={closeAll}>Services</Link>
+            <Link to="/about" className={styles.mobileFlat} onClick={closeAll}>About</Link>
+            <Link to="/contact" className={styles.mobileFlat} onClick={closeAll}>Contact</Link>
+            <a href={`tel:${PHONE_TEL}`} className={styles.mobileFlat}>
+              Call {PHONE_DISPLAY}
+            </a>
+          </div>
         </div>
       )}
-    </header>
+
+      {quoteOpen && <QuoteDrawer onClose={() => setQuoteOpen(false)} />}
+
+      <MobileBottomBar
+        onQuoteOpen={() => setQuoteOpen(true)}
+        quoteCount={quoteCount}
+      />
+    </>
   );
 };
 

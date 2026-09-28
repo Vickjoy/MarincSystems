@@ -16,17 +16,17 @@
 
 body {
   font-family: var(--font-body);
-  line-height: 1.6;
-  background: var(--color-bg);
-  color: var(--color-body);
+  line-height: var(--leading-normal, 1.65);
+  background: var(--paper, #F6F3EE);
+  color: var(--ink-2, #2A313A);
   min-height: 100vh;
 }
 
-/* Utility Classes */
+/* Utility Classes — container max aligned with design system */
 .container {
-  max-width: 1200px;
+  max-width: var(--container-max, 1280px);
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 var(--gutter, 24px);
 }
 
 /* Flexbox Utilities */

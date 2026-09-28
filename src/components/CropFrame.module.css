@@ -1,0 +1,53 @@
+.frame {
+  position: relative;
+  display: block;
+  padding: 10px;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.mark {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.mark::before,
+.mark::after {
+  content: '';
+  position: absolute;
+  background: var(--ink);
+}
+
+.mark::before {
+  width: 12px;
+  height: 1px;
+}
+
+.mark::after {
+  width: 1px;
+  height: 12px;
+}
+
+.tl { top: 0; left: 0; }
+.tl::before { top: 0; left: 0; }
+.tl::after { top: 0; left: 0; }
+
+.tr { top: 0; right: 0; }
+.tr::before { top: 0; right: 0; }
+.tr::after { top: 0; right: 0; }
+
+.bl { bottom: 0; left: 0; }
+.bl::before { bottom: 0; left: 0; }
+.bl::after { bottom: 0; left: 0; }
+
+.br { bottom: 0; right: 0; }
+.br::before { bottom: 0; right: 0; }
+.br::after { bottom: 0; right: 0; }

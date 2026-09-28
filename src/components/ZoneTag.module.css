@@ -1,0 +1,28 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  background: var(--zone-color, var(--red));
+  border-radius: 1px;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+.onDark {
+  color: rgba(246, 243, 238, 0.9);
+}

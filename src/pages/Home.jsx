@@ -1,7 +1,7 @@
-import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import styles from './Home.module.css';
 import PopularProductsCarousel from '../components/PopularProductsCarousel';
+import { fetchHeroBanners } from '../utils/api';
 import EatonLogo from '../assets/Eatonn.webp';
 import AlcatelLogo from '../assets/Alcatel.webp';
 import AvayaLogo from '../assets/Avaya.webp';
@@ -28,51 +28,51 @@ import VoIPImage from '../assets/VoIP.jpeg';
 import IPImage from '../assets/IP.jpeg';
 import StructuredCablingImage from '../assets/StructuredCabling.jpeg';
 
-// "Why Marinc" image (reuses an existing office/service image — swap for a dedicated
-// asset later if you have one; WHY.jpg from the old parallax section works fine here)
+// "Why Marinc" image
 import WhyImage from '../assets/WHY.jpg';
+
+// Defined outside the component so the reference is stable (no effect re-runs)
+const permanentSlides = [
+  {
+    id: 1,
+    displayMode: 'standard',
+    subtitle: 'Protect What Matters Most',
+    title: 'Advanced Fire Alarm & Detection Systems',
+    description: 'Reliable fire panels, detectors, and alarms designed for fast detection, instant alerts, and full safety control ensuring complete fire protection and compliance.',
+    images: [FireImage, EImage, FImage],
+    link: '/category/addressable-fire-alarm-detection-systems',
+    bgClass: 'heroSlide1',
+    buttonText: 'Explore Products',
+  },
+  {
+    id: 2,
+    displayMode: 'standard',
+    subtitle: 'Power Your Digital Infrastructure',
+    title: 'Enterprise Networking Solutions',
+    description: 'High-performance access points, routers, and switches built for secure, scalable, and reliable connectivity. Designed to support seamless communication and business continuity.',
+    images: [UbiquitiProductImage, CiscoProductImage, GImage],
+    link: '/category/ubiquiti-products',
+    bgClass: 'heroSlide2',
+    buttonText: 'Explore Products',
+  },
+  {
+    id: 3,
+    displayMode: 'standard',
+    subtitle: 'Built for Performance & Reliability',
+    title: 'Structured Cabling Infrastructure',
+    description: 'Certified Cat6, Cat6a, and fiber optic cabling systems engineered for maximum speed, stability, and scalability ensuring your network is future-ready and dependable.',
+    images: [AImage, BImage],
+    link: '/category/giganet-products',
+    bgClass: 'heroSlide3',
+    buttonText: 'Explore Products',
+  },
+];
 
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const permanentSlides = [
-    {
-      id: 1,
-      displayMode: 'standard',
-      subtitle: 'Protect What Matters Most',
-      title: 'Advanced Fire Alarm & Detection Systems',
-      description: 'Reliable fire panels, detectors, and alarms designed for fast detection, instant alerts, and full safety control ensuring complete fire protection and compliance.',
-      images: [FireImage, EImage, FImage],
-      link: '/category/addressable-fire-alarm-detection-systems',
-      bgClass: 'heroSlide1',
-      buttonText: 'Explore Products',
-    },
-    {
-      id: 2,
-      displayMode: 'standard',
-      subtitle: 'Power Your Digital Infrastructure',
-      title: 'Enterprise Networking Solutions',
-      description: 'High-performance access points, routers, and switches built for secure, scalable, and reliable connectivity. Designed to support seamless communication and business continuity.',
-      images: [UbiquitiProductImage, CiscoProductImage, GImage],
-      link: '/category/ubiquiti-products',
-      bgClass: 'heroSlide2',
-      buttonText: 'Explore Products',
-    },
-    {
-      id: 3,
-      displayMode: 'standard',
-      subtitle: 'Built for Performance & Reliability',
-      title: 'Structured Cabling Infrastructure',
-      description: 'Certified Cat6, Cat6a, and fiber optic cabling systems engineered for maximum speed, stability, and scalability ensuring your network is future-ready and dependable.',
-      images: [AImage, BImage],
-      link: '/category/giganet-products',
-      bgClass: 'heroSlide3',
-      buttonText: 'Explore Products',
-    },
-  ];
 
   const services = [
     {
@@ -127,10 +127,12 @@ const Home = () => {
   ];
 
   useEffect(() => {
-    const fetchBanners = async () => {
+    let cancelled = false;
+
+    const loadBanners = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/hero-banners/`);
-        const data = await response.json();
+        // fetchHeroBanners always returns an array (handles paginated + throttled cases)
+        const data = await fetchHeroBanners();
 
         const promotionalSlides = data.map((banner) => ({
           id: `promo-${banner.id}`,
@@ -140,23 +142,25 @@ const Home = () => {
           subtitle: banner.subtitle,
           title: banner.title,
           description: banner.description,
-          images: banner.images,
+          images: Array.isArray(banner.images) ? banner.images : [],
           link: banner.button_link,
           bgClass: banner.background_class || 'heroSlide1',
           buttonText: banner.button_text || 'Explore Products',
         }));
 
-        const allSlides = [...promotionalSlides, ...permanentSlides];
-        setSlides(allSlides);
-        setLoading(false);
+        if (!cancelled) setSlides([...promotionalSlides, ...permanentSlides]);
       } catch (error) {
         console.error('Error fetching hero banners:', error);
-        setSlides(permanentSlides);
-        setLoading(false);
+        if (!cancelled) setSlides(permanentSlides);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchBanners();
+    loadBanners();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -188,7 +192,8 @@ const Home = () => {
     );
   }
 
-  const currentSlideData = slides[currentSlide];
+  const currentSlideData = slides[currentSlide] || permanentSlides[0];
+  const currentImages = currentSlideData.images || [];
 
   return (
     <div>
@@ -253,10 +258,10 @@ const Home = () => {
             <div className={styles.heroImageContainer}>
               <div className={`${styles.heroImageWrapper} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`}>
                 <div className={`${styles.heroImagesGrid} ${
-                  currentSlideData.images.length === 3 ? styles.threeImages :
-                  currentSlideData.images.length === 2 ? styles.twoImages : ''
+                  currentImages.length === 3 ? styles.threeImages :
+                  currentImages.length === 2 ? styles.twoImages : ''
                 }`}>
-                  {currentSlideData.images.map((img, idx) => (
+                  {currentImages.map((img, idx) => (
                     <img key={idx} src={img} alt={`${currentSlideData.title} - ${idx + 1}`} className={styles.heroImage} />
                   ))}
                 </div>
@@ -268,10 +273,10 @@ const Home = () => {
               <div className={styles.heroMobileImages}>
                 <div className={`${styles.heroImageWrapper} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`}>
                   <div className={`${styles.heroImagesGrid} ${
-                    currentSlideData.images.length === 3 ? styles.threeImages :
-                    currentSlideData.images.length === 2 ? styles.twoImages : ''
+                    currentImages.length === 3 ? styles.threeImages :
+                    currentImages.length === 2 ? styles.twoImages : ''
                   }`}>
-                    {currentSlideData.images.map((img, idx) => (
+                    {currentImages.map((img, idx) => (
                       <img key={idx} src={img} alt={`${currentSlideData.title} - ${idx + 1}`} className={styles.heroImage} />
                     ))}
                   </div>
@@ -339,7 +344,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Stat Strip — new section, no Edge equivalent */}
+      {/* Stat Strip */}
       <section className={styles.statSection}>
         <div className={styles.statContainer}>
           {stats.map((stat, idx) => (
@@ -377,7 +382,7 @@ const Home = () => {
       {/* Popular Products Carousel */}
       <PopularProductsCarousel />
 
-      {/* Why Marinc — replaces the old parallax "Why Choose Us" background section */}
+      {/* Why Marinc */}
       <section className={styles.whySection}>
         <div className={styles.whyContainer}>
           <div className={styles.whyText}>
