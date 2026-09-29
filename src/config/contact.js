@@ -9,6 +9,7 @@ export const CONTACT = {
       { display: '0721 247 356', tel: '0721247356', intl: '+254 721 247 356', label: 'Alternative' },
     ],
     email: 'info@marincsystems.co.ke',
+    location: 'Said Bin Seif Building, Meru Road, Opposite Fantasy Restaurant',
     // WhatsApp uses the official number only
     whatsapp: '254113808073',
     whatsappUrl: 'https://wa.me/254113808073',
