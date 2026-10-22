@@ -191,14 +191,14 @@ const Contact = () => {
 
       <div className={styles.mapHero}>
         <iframe
-          src="https://maps.google.com/maps?q=Said+Bin+Seif+Building+Meru+Road+Mombasa&t=&z=16&ie=UTF8&iwloc=&output=embed"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.799398445661!2d39.66718117399783!3d-4.061275844954031!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x184013aa16b27475%3A0xefc5aea7d27bb441!2sMARINC%20Systems%20Ltd!5e0!3m2!1sen!2sus!4v1792662035442!5m2!1sen!2sus"
           width="100%"
-          height="100%"
+          height="400"
           style={{ border: 0 }}
           allowFullScreen=""
           loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Marinc Systems Mombasa HQ"
+          referrerPolicy="strict-origin-when-cross-origin"
+          title="MARINC Systems Ltd Location"
         />
       </div>
     </div>

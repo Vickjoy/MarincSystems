@@ -167,12 +167,12 @@ const Services = () => {
                 <p className={styles.responseHeading}>Our response commitment</p>
                 <div className={styles.responseGrid}>
                   <div className={styles.responseItem}>
-                    <span className={styles.bigNum}>1 HR</span>
-                    <span className={styles.bigLabel}>Phone response</span>
+                    <span className={styles.bigNum}>Expert</span>
+                    <span className={styles.bigLabel}>Technical Support</span>
                   </div>
                   <div className={styles.responseItem}>
-                    <span className={styles.bigNum}>24 HRS</span>
-                    <span className={styles.bigLabel}>On-site</span>
+                    <span className={styles.bigNum}>On-Site</span>
+                    <span className={styles.bigLabel}>Installation & Services</span>
                   </div>
                 </div>
               </div>

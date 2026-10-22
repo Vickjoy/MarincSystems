@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './Home.module.css';
 import PopularProductsCarousel from '../components/PopularProductsCarousel';
 import { fetchHeroBanners } from '../utils/api';
@@ -22,7 +22,7 @@ import AImage from '../assets/A.png';
 import BImage from '../assets/B.png';
 
 // Service images
-import FireAlarmImage from '../assets/FireAlarm.jpeg';
+import AlarmImage from '../assets/xDetect.jpg';
 import VoIPImage from '../assets/VoIP.jpg';
 import IPImage from '../assets/IP.jpg';
 import StructuredCablingImage from '../assets/Structured.jpg';
@@ -70,16 +70,63 @@ const permanentSlides = [
   },
 ];
 
+
+const HERO_INTRO_MS = 1800;
+
+
+const useScrollReveal = (enabled, visibleClass) => {
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!enabled) return undefined;
+
+    const root = rootRef.current;
+    if (!root) return undefined;
+
+    const targets = root.querySelectorAll('[data-reveal]');
+
+    // Graceful fallback: show everything if IntersectionObserver is missing
+    if (typeof IntersectionObserver === 'undefined') {
+      targets.forEach((el) => el.classList.add(visibleClass));
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(visibleClass);
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    targets.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [enabled, visibleClass]);
+
+  return rootRef;
+};
+
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
+  // True only for the first moments after the page loads. Once false, the hero
+  // entrance classes are removed so slide rotation / mode switches never
+  // replay the entrance animation.
+  const [introActive, setIntroActive] = useState(true);
+
+  const revealRootRef = useScrollReveal(!loading, styles.revealVisible);
 
   const services = [
     {
       id: 1,
-      image: FireAlarmImage,
+      image: AlarmImage,
       title: 'Fire Alarm & Detection',
       description:
         'Fire safety systems with smoke detectors, heat sensors, and panels. Ensure fast detection, real-time alerts, regulatory compliance, and secure operations.',
@@ -115,7 +162,7 @@ const Home = () => {
     { number: '10+', label: 'Years Experience' },
     { number: '500+', label: 'Projects Delivered' },
     { number: '8', label: 'Trusted Brand Partners' },
-    { number: '1 HR', label: 'Phone Response' },
+    { number: '100%', label: 'Customer Commitment' },,
   ];
 
   const whyChoosePoints = [
@@ -163,6 +210,15 @@ const Home = () => {
     };
   }, []);
 
+  // Start the one-time hero intro window as soon as the hero is on screen
+  useEffect(() => {
+    if (loading) return undefined;
+
+    const timer = setTimeout(() => setIntroActive(false), HERO_INTRO_MS);
+
+    return () => clearTimeout(timer);
+  }, [loading]);
+
   useEffect(() => {
     if (slides.length === 0) return;
 
@@ -196,8 +252,22 @@ const Home = () => {
   const currentSlideData = slides[currentSlide] || permanentSlides[0];
   const currentImages = currentSlideData.images || [];
 
+  // Hero entrance helpers: return nothing once the intro window has closed
+  const introClass = (variant = '') =>
+    introActive ? `${styles.introItem} ${variant}` : '';
+  const introStyle = (delayMs) =>
+    introActive ? { '--intro-delay': `${delayMs}ms` } : undefined;
+
+  const imagesGridClass = `${styles.heroImagesGrid} ${
+    currentImages.length === 3
+      ? styles.threeImages
+      : currentImages.length === 2
+      ? styles.twoImages
+      : ''
+  }`;
+
   return (
-    <div>
+    <div ref={revealRootRef}>
       {/* Hero Banner */}
       <section className={styles.heroSection}>
         {currentSlideData.displayMode === 'poster' ? (
@@ -210,14 +280,20 @@ const Home = () => {
                 <img
                   src={currentSlideData.posterImage}
                   alt="Promotional Poster"
-                  className={styles.heroPosterImage}
+                  className={`${styles.heroPosterImage} ${introClass(
+                    styles.introPoster
+                  )}`}
+                  style={introStyle(0)}
                 />
               </a>
             ) : (
               <img
                 src={currentSlideData.posterImage}
                 alt="Promotional Poster"
-                className={styles.heroPosterImage}
+                className={`${styles.heroPosterImage} ${introClass(
+                  styles.introPoster
+                )}`}
+                style={introStyle(0)}
               />
             )}
 
@@ -238,19 +314,35 @@ const Home = () => {
           <div className={styles.heroContainer}>
             {/* Desktop Layout */}
             <div className={styles.heroContent}>
-              <p className={styles.heroSubtitle}>
+              <p
+                className={`${styles.heroSubtitle} ${introClass()}`}
+                style={introStyle(100)}
+              >
                 {currentSlideData.subtitle}
               </p>
 
-              <h1 className={styles.heroTitle}>
+              <h1
+                className={`${styles.heroTitle} ${introClass(
+                  styles.introTitle
+                )}`}
+                style={introStyle(220)}
+              >
                 {currentSlideData.title}
               </h1>
 
-              <p className={styles.heroDescription}>
+              <p
+                className={`${styles.heroDescription} ${introClass()}`}
+                style={introStyle(340)}
+              >
                 {currentSlideData.description}
               </p>
 
-              <div className={styles.heroButtons}>
+              <div
+                className={`${styles.heroButtons} ${introClass(
+                  styles.introButtons
+                )}`}
+                style={introStyle(460)}
+              >
                 <button
                   className={`btn btn--primary ${styles.heroButton}`}
                   onClick={() =>
@@ -282,7 +374,12 @@ const Home = () => {
                 </a>
               </div>
 
-              <div className={styles.heroNavigation}>
+              <div
+                className={`${styles.heroNavigation} ${introClass(
+                  styles.introButtons
+                )}`}
+                style={introStyle(560)}
+              >
                 {slides.map((_, index) => (
                   <button
                     key={index}
@@ -303,13 +400,10 @@ const Home = () => {
                 }`}
               >
                 <div
-                  className={`${styles.heroImagesGrid} ${
-                    currentImages.length === 3
-                      ? styles.threeImages
-                      : currentImages.length === 2
-                      ? styles.twoImages
-                      : ''
-                  }`}
+                  className={`${imagesGridClass} ${introClass(
+                    styles.introImages
+                  )}`}
+                  style={introStyle(200)}
                 >
                   {currentImages.map((img, idx) => (
                     <img
@@ -332,13 +426,10 @@ const Home = () => {
                   }`}
                 >
                   <div
-                    className={`${styles.heroImagesGrid} ${
-                      currentImages.length === 3
-                        ? styles.threeImages
-                        : currentImages.length === 2
-                        ? styles.twoImages
-                        : ''
-                    }`}
+                    className={`${imagesGridClass} ${introClass(
+                      styles.introImages
+                    )}`}
+                    style={introStyle(80)}
                   >
                     {currentImages.map((img, idx) => (
                       <img
@@ -353,7 +444,10 @@ const Home = () => {
               </div>
 
               <button
-                className={`btn btn--primary ${styles.heroMobileButton}`}
+                className={`btn btn--primary ${styles.heroMobileButton} ${introClass(
+                  styles.introButtons
+                )}`}
+                style={introStyle(200)}
                 onClick={() =>
                   (window.location.href = currentSlideData.link)
                 }
@@ -362,20 +456,36 @@ const Home = () => {
               </button>
 
               <div className={styles.heroMobileContent}>
-                <p className={styles.heroSubtitle}>
+                <p
+                  className={`${styles.heroSubtitle} ${introClass()}`}
+                  style={introStyle(280)}
+                >
                   {currentSlideData.subtitle}
                 </p>
 
-                <h1 className={styles.heroTitle}>
+                <h1
+                  className={`${styles.heroTitle} ${introClass(
+                    styles.introTitle
+                  )}`}
+                  style={introStyle(360)}
+                >
                   {currentSlideData.title}
                 </h1>
 
-                <p className={styles.heroDescription}>
+                <p
+                  className={`${styles.heroDescription} ${introClass()}`}
+                  style={introStyle(440)}
+                >
                   {currentSlideData.description}
                 </p>
               </div>
 
-              <div className={styles.heroMobileNavigation}>
+              <div
+                className={`${styles.heroMobileNavigation} ${introClass(
+                  styles.introButtons
+                )}`}
+                style={introStyle(520)}
+              >
                 {slides.map((_, index) => (
                   <button
                     key={index}
@@ -394,7 +504,10 @@ const Home = () => {
 
       {/* Partner Brands */}
       <section className={styles.partnersSection}>
-        <div className={styles.partnersContainer}>
+        <div
+          className={`${styles.partnersContainer} ${styles.reveal} ${styles.revealSoft}`}
+          data-reveal
+        >
           <div className={styles.sliderWrapper}>
             <div className={styles.sliderTrack}>
               {[
@@ -503,7 +616,11 @@ const Home = () => {
       <section className={styles.statSection}>
         <div className={styles.statContainer}>
           {stats.map((stat, idx) => (
-            <div key={idx} className={styles.statItem}>
+            <div
+              key={idx}
+              className={`${styles.statItem} ${styles.reveal} ${styles.revealStat}`}
+              data-reveal
+            >
               <span className={styles.statNumber}>{stat.number}</span>
               <span className={styles.statLabel}>{stat.label}</span>
             </div>
@@ -514,46 +631,58 @@ const Home = () => {
       {/* Our Services */}
       <section className={styles.servicesSection}>
         <div className={styles.servicesContainer}>
-          <div className={styles.sectionHeading}>
-            <span className={styles.eyebrow}>What We Offer</span>
-            <h2 className={styles.servicesTitle}>Our Services</h2>
+          <div className={styles.sectionHeading} data-reveal>
+            <span
+              className={`${styles.eyebrow} ${styles.revealChild} ${styles.revealHeading}`}
+            >
+              What We Offer
+            </span>
+            <h2
+              className={`${styles.servicesTitle} ${styles.revealChild} ${styles.revealHeading}`}
+            >
+              Our Services
+            </h2>
           </div>
 
           <div className={styles.servicesGrid}>
             {services.map((service) => (
-              <a
+              <div
                 key={service.id}
-                href={service.link}
-                className={styles.serviceCard}
+                className={`${styles.reveal} ${styles.revealService}`}
+                data-reveal
               >
-                <div className={styles.serviceImageWrapper}>
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className={styles.serviceImage}
-                  />
-                </div>
+                <a href={service.link} className={styles.serviceCard}>
+                  <div className={styles.serviceImageWrapper}>
+                    <img
+                      src={service.image}
+                      alt={service.title}
+                      className={styles.serviceImage}
+                    />
+                  </div>
 
-                <div className={styles.serviceContent}>
-                  <h3 className={styles.serviceTitle}>{service.title}</h3>
+                  <div className={styles.serviceContent}>
+                    <h3 className={styles.serviceTitle}>{service.title}</h3>
 
-                  <p className={styles.serviceDescription}>
-                    {service.description}
-                  </p>
-                </div>
-              </a>
+                    <p className={styles.serviceDescription}>
+                      {service.description}
+                    </p>
+                  </div>
+                </a>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Popular Products Carousel */}
-      <PopularProductsCarousel />
+      <div className={`${styles.reveal} ${styles.revealSoft}`} data-reveal>
+        <PopularProductsCarousel />
+      </div>
 
       {/* Why Marinc */}
       <section className={styles.whySection}>
-        <div className={styles.whyContainer}>
-          <div className={styles.whyText}>
+        <div className={styles.whyContainer} data-reveal>
+          <div className={`${styles.whyText} ${styles.revealChild} ${styles.fromLeft}`}>
             <span className={styles.eyebrow}>Why Marinc</span>
 
             <h2 className={styles.whyTitle}>
@@ -562,7 +691,11 @@ const Home = () => {
 
             <ul className={styles.whyList}>
               {whyChoosePoints.map((point, index) => (
-                <li key={index} className={styles.whyItem}>
+                <li
+                  key={index}
+                  className={`${styles.whyItem} ${styles.revealChild} ${styles.revealItemUp}`}
+                  style={{ '--reveal-delay': `${300 + index * 120}ms` }}
+                >
                   <span className={styles.whyCheck}>✓</span>
                   <span>{point}</span>
                 </li>
@@ -570,7 +703,9 @@ const Home = () => {
             </ul>
           </div>
 
-          <div className={styles.whyImageWrapper}>
+          <div
+            className={`${styles.whyImageWrapper} ${styles.revealChild} ${styles.fromRight}`}
+          >
             <img
               src={WhyImage}
               alt="Marinc Systems team at work"

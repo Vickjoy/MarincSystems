@@ -334,7 +334,7 @@ const Header = () => {
               className={`${styles.topbarItem} ${styles.topbarAddress}`}
             >
               <FaMapMarkerAlt className={styles.topbarIcon} aria-hidden="true" />
-              Said Bin Seif Building, Meru Road, Mombasa
+              Said Bin Seif Building, Meru Road, Mombasa, Opp. Fantasy Restaurant
             </a>
 
           </div>
