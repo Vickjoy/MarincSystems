@@ -1,320 +1,275 @@
 import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import Breadcrumbs from '../components/Breadcrumbs';
-import styles from './ProductList.module.css';
-import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchCategories, fetchSubcategories } from '../utils/api';
+import { getZoneFromType } from '../utils/zones';
 // NOTE: search.js must live in src/utils (it imports ./api and ./zones)
 import { searchProducts } from '../utils/search';
+import styles from './ProductList.module.css';
 
-// Cache configuration
-const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
+/* ---------- Cache (localStorage, 15 min) ---------- */
+
+const CACHE_DURATION = 15 * 60 * 1000;
+const PAGE_SIZE = 40;
 const CACHE_KEYS = {
   CATEGORIES: 'marincSystemsCategories',
   SUBCATEGORIES: 'marincSystemsSubcategories',
-  PRODUCTS: 'marincSystemsProducts'
+  PRODUCTS: 'marincSystemsProducts',
 };
 
-// Cache utility functions
 const getCacheKey = (key, params = '') => `${key}${params ? `_${params}` : ''}`;
+
+const clearCacheByPrefix = (prefix, mustInclude) => {
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith(prefix) && (!mustInclude || k.includes(mustInclude)))
+      .forEach((k) => localStorage.removeItem(k));
+  } catch { /* storage unavailable */ }
+};
 
 const getCachedData = (cacheKey) => {
   try {
     const cached = localStorage.getItem(cacheKey);
     if (!cached) return null;
-
     const { data, timestamp } = JSON.parse(cached);
-    const now = Date.now();
-
-    // Check if cache is still valid
-    if (now - timestamp < CACHE_DURATION) {
-      return data;
-    }
-
-    // Cache expired, remove it
+    if (Date.now() - timestamp < CACHE_DURATION) return data;
     localStorage.removeItem(cacheKey);
     return null;
-  } catch (error) {
-    console.error('Error reading cache:', error);
-    localStorage.removeItem(cacheKey);
+  } catch {
+    try { localStorage.removeItem(cacheKey); } catch { /* ignore */ }
     return null;
   }
 };
 
 const setCachedData = (cacheKey, data) => {
   try {
-    const cacheObject = {
-      data,
-      timestamp: Date.now()
-    };
-    localStorage.setItem(cacheKey, JSON.stringify(cacheObject));
+    localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
   } catch (error) {
-    console.error('Error setting cache:', error);
-    // Handle storage quota exceeded
     if (error.name === 'QuotaExceededError') {
-      // Clear old cache entries
-      Object.values(CACHE_KEYS).forEach(key => {
-        const keys = Object.keys(localStorage).filter(k => k.startsWith(key));
-        keys.forEach(k => localStorage.removeItem(k));
-      });
+      Object.values(CACHE_KEYS).forEach((key) => clearCacheByPrefix(key));
     }
   }
 };
 
-// Enhanced API functions with caching
-const fetchCategoriesWithCache = async () => {
-  const cacheKey = getCacheKey(CACHE_KEYS.CATEGORIES);
+const withCache = async (cacheKey, loader) => {
   const cached = getCachedData(cacheKey);
-
-  if (cached) {
-    return cached;
-  }
-
-  const data = await fetchCategories();
+  if (cached) return cached;
+  const data = await loader();
   setCachedData(cacheKey, data);
   return data;
 };
 
-const fetchSubcategoriesWithCache = async (categorySlug) => {
-  const cacheKey = getCacheKey(CACHE_KEYS.SUBCATEGORIES, categorySlug);
-  const cached = getCachedData(cacheKey);
+const fetchCategoriesWithCache = () =>
+  withCache(getCacheKey(CACHE_KEYS.CATEGORIES), fetchCategories);
 
-  if (cached) {
-    return cached;
-  }
+const fetchSubcategoriesWithCache = (categorySlug) =>
+  withCache(getCacheKey(CACHE_KEYS.SUBCATEGORIES, categorySlug), () => fetchSubcategories(categorySlug));
 
-  const data = await fetchSubcategories(categorySlug);
-  setCachedData(cacheKey, data);
-  return data;
-};
+const fetchProductsWithCache = (subcategorySlug, page, pageSize = PAGE_SIZE) =>
+  withCache(getCacheKey(CACHE_KEYS.PRODUCTS, `${subcategorySlug}_${page}_${pageSize}`), async () => {
+    const url = `${API_BASE_URL}/api/subcategories/${subcategorySlug}/products/?page=${page}&page_size=${pageSize}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Products request failed (${response.status})`);
+    return response.json();
+  });
 
-const fetchProductsWithCache = async (subcategorySlug, page = 1, pageSize = 40) => {
-  const cacheKey = getCacheKey(CACHE_KEYS.PRODUCTS, `${subcategorySlug}_${page}_${pageSize}`);
-  const cached = getCachedData(cacheKey);
-
-  if (cached) {
-    return cached;
-  }
-
-  const url = `${API_BASE_URL}/api/subcategories/${subcategorySlug}/products/?page=${page}&page_size=${pageSize}`;
-  const response = await fetch(url);
-  const data = await response.json();
-
-  setCachedData(cacheKey, data);
-  return data;
-};
+/* ---------- Component ---------- */
 
 const ProductList = () => {
   const { categorySlug, slug } = useParams();
   const category = categorySlug || slug || '';
   const location = useLocation();
+  const { token } = useAuth(); // eslint-disable-line no-unused-vars
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [subCategory, setSubCategory] = useState(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const observer = useRef();
-  const { token } = useAuth();
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [subCategory, setSubCategory] = useState(null);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [searchError, setSearchError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+  const observer = useRef(null);
 
-  // Search mode: driven by /search?query=... so it survives refresh and back/forward
+  // Search mode is driven by /search?query=... so it survives refresh and back/forward
   const isSearchResults = location.pathname.startsWith('/search');
   const searchQuery = new URLSearchParams(location.search).get('query') || '';
 
-  // Categories (browse mode only)
-  useEffect(() => {
-    if (isSearchResults) return;
+  const selectedCategory = categories.find((c) => c.slug === category) || null;
+  const zone = getZoneFromType(selectedCategory?.type);
 
+  /* Categories (browse mode) */
+  useEffect(() => {
+    if (isSearchResults) return undefined;
+    let cancelled = false;
     setLoading(true);
-    const getCategories = async () => {
-      setLoadingCategories(true);
-      try {
-        const data = await fetchCategoriesWithCache();
-        setCategories(data);
-      } catch (error) {
+
+    fetchCategoriesWithCache()
+      .then((data) => { if (!cancelled) setCategories(Array.isArray(data) ? data : data?.results || []); })
+      .catch((error) => {
         console.error('Error fetching categories:', error);
-        setCategories([]);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-    getCategories();
+        if (!cancelled) { setCategories([]); setLoading(false); }
+      });
+
+    return () => { cancelled = true; };
   }, [isSearchResults]);
 
-  // Search (search mode only)
+  /* Search (search mode) */
   useEffect(() => {
-    if (!isSearchResults) return;
-
+    if (!isSearchResults) return undefined;
     let cancelled = false;
+
     setLoading(true);
     setSearchError('');
     setProducts([]);
     setSubcategories([]);
+    setSubCategory(null);
     setHasMore(false);
 
     searchProducts(searchQuery)
-      .then((results) => {
-        if (!cancelled) setProducts(results);
-      })
+      .then((results) => { if (!cancelled) setProducts(results); })
       .catch((error) => {
         console.error('Search failed:', error);
         if (!cancelled) setSearchError('Search is unavailable right now. Please try again.');
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .finally(() => { if (!cancelled) setLoading(false); });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [isSearchResults, searchQuery]);
 
-  // Only fetch subcategories/products if not search results
+  /* Subcategories (browse mode). A category change resets selection and list. */
   useEffect(() => {
-    if (isSearchResults) return;
-    if (!category) {
-      setSubcategories([]);
-      return;
-    }
+    if (isSearchResults) return undefined;
 
-    const selectedCategory = categories.find(cat => cat.slug === category);
-    if (!selectedCategory) {
-      setSubcategories([]);
-      return;
-    }
-
-    const getSubcategories = async () => {
-      setLoadingSubcategories(true);
-      try {
-        const data = await fetchSubcategoriesWithCache(selectedCategory.slug);
-        setSubcategories(data);
-        // Auto-select the first subcategory if none is selected
-        if ((!subCategory || !subCategory.slug) && Array.isArray(data) && data.length > 0) {
-          setSubCategory(data[0]);
-        }
-        // With no subcategory, fetchProducts never runs, so `loading`
-        // would stay true forever and the empty state could never show.
-        if (Array.isArray(data) && data.length === 0) setLoading(false);
-      } catch (error) {
-        console.error('Error fetching subcategories:', error);
-        setSubcategories([]);
-        setLoading(false);
-      } finally {
-        setLoadingSubcategories(false);
-      }
-    };
-    getSubcategories();
-    // eslint-disable-next-line
-  }, [category, categories, isSearchResults]);
-
-  // Only fetch products if not search results
-  const fetchProducts = useCallback(async (reset = false) => {
-    if (isSearchResults) return;
-    // Only fetch when a subcategory is selected
-    if (!subCategory || !subCategory.slug) return;
-
-    setLoading(true);
-    try {
-      const data = await fetchProductsWithCache(subCategory.slug, page, 40);
-
-      if (reset) {
-        setProducts(data.results || data);
-      } else {
-        setProducts(prev => [...prev, ...(data.results || data)]);
-      }
-      setHasMore(data.next !== null && data.next !== undefined);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [category, subCategory, page, isSearchResults]);
-
-  // Reset products and page when category or subCategory changes
-  useEffect(() => {
-    if (isSearchResults) return;
+    setSubCategory(null);
     setProducts([]);
     setPage(1);
     setHasMore(true);
-  }, [category, subCategory, isSearchResults]);
 
-  // Fetch products when page, category, or subCategory changes
-  useEffect(() => {
-    if (isSearchResults) return;
-    fetchProducts(page === 1);
-
-    const handleProductsUpdated = () => {
-      // Clear relevant product cache when products are updated
-      const keys = Object.keys(localStorage).filter(key =>
-        key.startsWith(CACHE_KEYS.PRODUCTS) &&
-        subCategory && key.includes(subCategory.slug)
-      );
-      keys.forEach(key => localStorage.removeItem(key));
-      fetchProducts(true);
-    };
-
-    window.addEventListener('productsUpdated', handleProductsUpdated);
-    return () => window.removeEventListener('productsUpdated', handleProductsUpdated);
-    // eslint-disable-next-line
-  }, [category, subCategory, page, isSearchResults]);
-
-  // Infinite scroll observer
-  const lastProductRef = useCallback(node => {
-    if (loading) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new window.IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(prev => prev + 1);
-      }
-    });
-    if (node) observer.current.observe(node);
-  }, [loading, hasMore]);
-
-  // Handle product deletion
-  const handleDelete = (id) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-    // Clear relevant cache when a product is deleted
-    if (subCategory) {
-      const keys = Object.keys(localStorage).filter(key =>
-        key.startsWith(CACHE_KEYS.PRODUCTS) && key.includes(subCategory.slug)
-      );
-      keys.forEach(key => localStorage.removeItem(key));
+    if (!category || !selectedCategory) {
+      setSubcategories([]);
+      return undefined;
     }
+
+    let cancelled = false;
+    setLoadingSubcategories(true);
+
+    fetchSubcategoriesWithCache(selectedCategory.slug)
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : data?.results || [];
+        setSubcategories(list);
+        setSubCategory(list[0] || null);
+        // No subcategory means no product fetch will run, so stop the spinner here
+        if (list.length === 0) setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error fetching subcategories:', error);
+        if (cancelled) return;
+        setSubcategories([]);
+        setLoading(false);
+      })
+      .finally(() => { if (!cancelled) setLoadingSubcategories(false); });
+
+    return () => { cancelled = true; };
+    // selectedCategory is derived from categories + category; depend on its slug only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, selectedCategory?.slug, isSearchResults]);
+
+  /* Products for the selected subcategory + page (ignores stale responses) */
+  useEffect(() => {
+    if (isSearchResults || !subCategory?.slug) return undefined;
+    let cancelled = false;
+    setLoading(true);
+
+    fetchProductsWithCache(subCategory.slug, page)
+      .then((data) => {
+        if (cancelled) return;
+        const items = data?.results || (Array.isArray(data) ? data : []);
+        setProducts((prev) => {
+          if (page === 1) return items;
+          const seen = new Set(prev.map((p) => p.id));
+          return [...prev, ...items.filter((p) => !seen.has(p.id))];
+        });
+        setHasMore(data?.next !== null && data?.next !== undefined);
+      })
+      .catch((error) => {
+        console.error('Error fetching products:', error);
+        if (!cancelled) setHasMore(false);
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [subCategory, page, isSearchResults, reloadKey]);
+
+  /* Admin edits elsewhere dispatch 'productsUpdated': drop cache and reload page 1 */
+  useEffect(() => {
+    if (isSearchResults) return undefined;
+    const onProductsUpdated = () => {
+      if (subCategory) clearCacheByPrefix(CACHE_KEYS.PRODUCTS, subCategory.slug);
+      setPage(1);
+      setReloadKey((k) => k + 1);
+    };
+    window.addEventListener('productsUpdated', onProductsUpdated);
+    return () => window.removeEventListener('productsUpdated', onProductsUpdated);
+  }, [subCategory, isSearchResults]);
+
+  /* Infinite scroll */
+  const lastProductRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new window.IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) setPage((prev) => prev + 1);
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
+
+  useEffect(() => () => observer.current?.disconnect(), []);
+
+  const handleSelectSubcategory = (sub) => {
+    if (sub.id === subCategory?.id) return;
+    setProducts([]);
+    setPage(1);
+    setHasMore(true);
+    setSubCategory(sub);
   };
 
-  // Function to clear all cache (useful for debugging or force refresh)
+  const handleDelete = (id) => {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    if (subCategory) clearCacheByPrefix(CACHE_KEYS.PRODUCTS, subCategory.slug);
+  };
+
   const clearCache = () => {
-    Object.values(CACHE_KEYS).forEach(cacheKey => {
-      const keys = Object.keys(localStorage).filter(key => key.startsWith(cacheKey));
-      keys.forEach(key => localStorage.removeItem(key));
-    });
+    Object.values(CACHE_KEYS).forEach((key) => clearCacheByPrefix(key));
     window.location.reload();
   };
 
-  const categoryLabel = category
-    ? category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-    : '';
+  const categoryLabel =
+    selectedCategory?.name ||
+    (category ? category.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()) : '');
 
-  // Breadcrumbs logic
   const crumbs = [
     { label: 'Home', path: '/' },
-    isSearchResults
-      ? { label: 'Search Results', path: location.pathname + location.search }
-      : { label: location.pathname.startsWith('/fire-safety') ? 'Fire Safety' : 'ICT & Security', path: location.pathname.startsWith('/fire-safety') ? '/fire-safety' : '/ict' },
-    ...(isSearchResults ? [] : [{ label: categoryLabel, path: location.pathname }]),
-    ...(subCategory && !isSearchResults ? [{ label: subCategory.name, path: '#' }] : [])
+    ...(isSearchResults
+      ? [{ label: 'Search results', path: location.pathname + location.search }]
+      : [
+          { label: categoryLabel, path: location.pathname },
+          ...(subCategory ? [{ label: subCategory.name, path: '#' }] : []),
+        ]),
   ];
 
   const renderEmpty = () => {
     if (isSearchResults) {
-      if (loading) return <div className={styles.loadingMessage}>Searching…</div>;
-      if (searchError) return <p className={styles.noProductsMessage}>{searchError}</p>;
+      if (loading) return <div className={styles.loadingMessage} role="status">Searching…</div>;
+      if (searchError) return <p className={styles.noProductsMessage} role="alert">{searchError}</p>;
       if (!searchQuery.trim()) {
         return <p className={styles.noProductsMessage}>Type a product name, brand or model in the search box.</p>;
       }
@@ -324,28 +279,27 @@ const ProductList = () => {
         </p>
       );
     }
-    if (loading) return <div className={styles.loadingMessage}>Loading products...</div>;
+    if (loading) return <div className={styles.loadingMessage} role="status">Loading products…</div>;
     return <p className={styles.noProductsMessage}>No products in this subcategory yet.</p>;
   };
 
   return (
     <div>
       <Breadcrumbs crumbs={crumbs} />
-      <section className={styles.section}>
+      <section className={styles.section} style={{ '--zone-color': zone.color }}>
         <div className={styles.categoryContainer}>
-          {/* Sidebar with subcategories - hide for search results */}
           {!isSearchResults && (
-            <aside className={styles.stickySidebar}>
+            <aside className={styles.stickySidebar} aria-label="Subcategories">
               <div className={styles.sidebarContent}>
                 <h3 className={styles.sidebarTitle}>Subcategories</h3>
                 {loadingSubcategories ? (
-                  <div className={styles.noSubcategories}>Loading subcategories...</div>
+                  <div className={styles.noSubcategories}>Loading subcategories…</div>
                 ) : (
                   <ul className={styles.subcategoryList}>
                     {subcategories.length === 0 && (
                       <li className={styles.noSubcategories}>No subcategories</li>
                     )}
-                    {subcategories.map(sub => {
+                    {subcategories.map((sub) => {
                       const isActive = subCategory?.id === sub.id;
                       return (
                         <li key={sub.id}>
@@ -353,7 +307,7 @@ const ProductList = () => {
                             type="button"
                             className={`${styles.subcategoryButton} ${isActive ? styles.active : ''}`}
                             aria-current={isActive ? 'true' : undefined}
-                            onClick={() => setSubCategory(sub)}
+                            onClick={() => handleSelectSubcategory(sub)}
                           >
                             {sub.name}
                           </button>
@@ -364,25 +318,19 @@ const ProductList = () => {
                 )}
               </div>
 
-              {/* Debug button for development */}
               {process.env.NODE_ENV === 'development' && (
-                <button
-                  type="button"
-                  onClick={clearCache}
-                  className={styles.debugButton}
-                >
+                <button type="button" onClick={clearCache} className={styles.debugButton}>
                   Clear cache
                 </button>
               )}
             </aside>
           )}
 
-          {/* Main content: Product Grid */}
           <div className={styles.mainContent}>
             <h2 className={styles.categoryTitle}>
               {isSearchResults
-                ? (searchQuery ? `Search results for “${searchQuery}”` : 'Search results')
-                : `${categoryLabel} Products`}
+                ? searchQuery ? `Search results for “${searchQuery}”` : 'Search results'
+                : `${categoryLabel} products`}
             </h2>
 
             {isSearchResults && !loading && products.length > 0 && (
@@ -391,24 +339,28 @@ const ProductList = () => {
               </p>
             )}
 
-            {/* Product Grid: Only show if there are products */}
             {products.length > 0 ? (
               <div className={styles.productsGrid}>
                 {products.map((product, idx) => {
-                  if (products.length === idx + 1 && !isSearchResults) {
-                    return (
-                      <div ref={lastProductRef} key={product.id}>
-                        <ProductCard product={product} onDelete={handleDelete} />
-                      </div>
-                    );
+                  const card = (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onDelete={handleDelete}
+                      zoneType={isSearchResults ? undefined : selectedCategory?.type}
+                    />
+                  );
+                  if (idx === products.length - 1 && !isSearchResults) {
+                    return <div ref={lastProductRef} key={product.id}>{card}</div>;
                   }
-                  return <ProductCard key={product.id} product={product} onDelete={handleDelete} />;
+                  return card;
                 })}
+
                 {loading && !isSearchResults && (
-                  <div className={styles.loadingMessage}>Loading more products...</div>
+                  <div className={styles.loadingMessage} role="status">Loading more products…</div>
                 )}
-                {!hasMore && !loading && products.length > 0 && !isSearchResults && (
-                  <p className={styles.endMessage}>You've reached the end of this list.</p>
+                {!hasMore && !loading && !isSearchResults && (
+                  <p className={styles.endMessage}>You’ve reached the end of this list.</p>
                 )}
               </div>
             ) : (

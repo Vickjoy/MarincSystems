@@ -1,73 +1,37 @@
-/* Loading State */
+/* Home — global tokens only. Flat surfaces, hairlines, square dots, no shadows. */
+
+/* Loading */
 .loadingContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 75vh;
-  gap: 1rem;
+  gap: var(--space-4);
+  color: var(--muted);
 }
+.loadingContainer p { margin: 0; }
 
 .spinner {
-  width: 44px;
-  height: 44px;
-  border: 4px solid var(--color-border);
-  border-top: 4px solid var(--color-primary);
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--line);
+  border-top-color: var(--red);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* POSTER MODE */
-.heroPosterContainer {
-  position: relative;
-  width: 100%;
-  min-height: 50vh;
-  height: 50vh;
-  max-height: 560px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-primary-tint);
-  overflow: hidden;
-}
-
-.heroPosterLink { display: block; width: 100%; height: 100%; }
-
-.heroPosterImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.heroPosterNavigation {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.75rem;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
-  padding: 0.6rem 1.1rem;
-  border-radius: var(--radius-full);
-}
-
-/* Hero — split layout, flat background per design direction */
+/* ===== Hero ===== */
 .heroSection {
   position: relative;
   min-height: 60vh;
-  background: var(--color-primary-tint);
+  background: var(--paper-2);
   display: flex;
   align-items: center;
   overflow: hidden;
-  padding: var(--space-10) var(--space-6);
+  padding: var(--space-10) var(--gutter);
+  border-bottom: 1px solid var(--line);
 }
 
 .heroContainer {
@@ -75,88 +39,78 @@
   margin: 0 auto;
   width: 100%;
   display: grid;
-  /* CHANGED: image column is wider (was 1fr 1.1fr) so wide images get more room.
-     Set back to "1fr 1.1fr" if you prefer the old balance. */
   grid-template-columns: 1fr 1.25fr;
   gap: var(--space-8);
   align-items: center;
 }
 
-.heroContent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
+.heroContent { display: flex; flex-direction: column; gap: var(--space-5); }
 
-.heroSubtitle {
-  color: var(--color-secondary-dark);
-  font-weight: 700;
-  font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
+.heroSubtitle { margin: 0; color: var(--red); }
 
 .heroTitle {
-  font-family: var(--font-heading);
-  font-size: clamp(1.75rem, 4vw + 0.5rem, var(--text-5xl));
-  font-weight: 800;
-  color: var(--color-ink);
-  line-height: var(--leading-tight);
   margin: 0;
+  font-size: clamp(2rem, 3.5vw + 0.5rem, 3.75rem);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
 }
 
 .heroDescription {
-  font-size: var(--text-lg);
-  color: var(--color-body);
-  line-height: var(--leading-normal);
+  margin: 0;
   max-width: 520px;
+  font-size: var(--text-lg);
+  color: var(--ink-2);
+  line-height: var(--leading-normal);
 }
 
-.heroButtons {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  margin-top: var(--space-2);
-}
+.heroButtons { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-2); }
 
-.heroButton, .heroButtonSecondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.heroNavigation {
-  display: flex;
-  gap: 0.6rem;
-  margin-top: var(--space-2);
-}
+.heroNavigation { display: flex; gap: 0.5rem; margin-top: var(--space-2); }
 
 .heroDot {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
-  background: var(--color-border);
-  border: none;
-  cursor: pointer;
-  transition: all var(--transition-fast);
   padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--line);
+  cursor: pointer;
+  transition: width var(--transition-fast), background var(--transition-fast);
 }
+.heroDot:hover { background: var(--muted); }
+.heroDotActive, .heroDotActive:hover { width: 32px; background: var(--red); }
 
-.heroDot:hover { background: var(--color-primary-light); }
-
-.heroDotActive {
-  width: 32px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
+/* Poster mode */
+.heroPosterContainer {
+  position: relative;
+  width: 100%;
+  height: 50vh;
+  min-height: 50vh;
+  max-height: 560px;
+  background: var(--paper-2);
+  overflow: hidden;
 }
+.heroPosterLink { display: block; width: 100%; height: 100%; }
+.heroPosterImage { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.heroPosterNavigation .heroDot {
-  background: rgba(255, 255, 255, 0.5);
+.heroPosterNavigation {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-5);
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  background: rgba(18, 22, 28, 0.7);
+  border-radius: var(--radius-sm);
 }
-.heroPosterNavigation .heroDotActive {
-  background: #ffffff;
-}
+.heroPosterNavigation .heroDot { background: rgba(255, 255, 255, 0.45); }
+.heroPosterNavigation .heroDot:hover { background: rgba(255, 255, 255, 0.75); }
+.heroPosterNavigation .heroDotActive,
+.heroPosterNavigation .heroDotActive:hover { background: var(--white); }
 
+/* Hero images */
 .heroImageContainer {
   position: relative;
   height: 480px;
@@ -170,9 +124,8 @@
   position: relative;
   width: 100%;
   height: 100%;
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  transition: opacity 350ms ease, transform 350ms ease;
 }
-
 .heroImageWrapper.fadeOut { opacity: 0; transform: translateY(12px); }
 .heroImageWrapper.fadeIn { opacity: 1; transform: translateY(0); }
 
@@ -180,11 +133,9 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(var(--shadow-lg));
   transition: transform var(--transition-base);
 }
-
-.heroImage:hover { transform: scale(1.03); }
+.heroImage:hover { transform: scale(1.02); }
 
 .heroImagesGrid {
   display: flex;
@@ -196,86 +147,206 @@
   padding: var(--space-4);
 }
 
-/* ------------------------------------------------------------------
-   THREE IMAGES (Fix 2)
-   Top row (first image) now gets more space than the bottom row.
-   ------------------------------------------------------------------ */
+/* Three images: wide first image on top row, two smaller below */
 .heroImagesGrid.threeImages {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: 1.4fr 1fr;   /* CHANGED: was 1fr 1fr */
+  grid-template-rows: 1.4fr 1fr;
   gap: var(--space-4);
   padding: 0;
   max-height: 460px;
 }
+.heroImagesGrid.threeImages .heroImage { max-height: 220px; }
+.heroImagesGrid.threeImages .heroImage:first-child { grid-column: 1 / -1; grid-row: 1; max-height: 290px; }
+.heroImagesGrid.threeImages .heroImage:not(:first-child) { max-height: 150px; }
 
-.heroImagesGrid.threeImages .heroImage {
-  width: 100%;
-  height: 100%;
-  max-height: 220px;
+.heroImagesGrid.twoImages { flex-direction: column; gap: var(--space-4); }
+.heroImagesGrid.twoImages .heroImage { max-height: 220px; flex: 1; }
+
+.heroMobileLayout { display: none; }
+
+/* ===== Partners ===== */
+.partnersSection {
+  background: var(--white);
+  padding: var(--space-5) 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+.partnersContainer { max-width: 100%; margin: 0 auto; }
+.sliderWrapper { overflow: hidden; position: relative; width: 100%; }
+
+.sliderTrack { display: flex; width: max-content; animation: scroll 28s linear infinite; }
+.sliderWrapper:hover .sliderTrack,
+.sliderWrapper:focus-within .sliderTrack { animation-play-state: paused; }
+
+.partnerLogoLink {
+  flex: 0 0 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 var(--space-5);
+}
+
+/* Logos display in their original full color.
+   To bring back the black & white look, add this inside .partnerLogo:
+     filter: grayscale(100%) opacity(0.65);
+     transition: filter var(--transition-base);
+   and add this rule below it:
+     .partnerLogoLink:hover .partnerLogo,
+     .partnerLogoLink:focus-visible .partnerLogo { filter: none; } */
+.partnerLogo {
+  height: 64px;
+  width: auto;
+  max-width: 160px;
   object-fit: contain;
 }
 
-/* CHANGED: first (wide) image spans the full top row and is allowed to be taller */
-.heroImagesGrid.threeImages .heroImage:first-child {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  max-height: 290px;               /* was 220px */
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
-/* CHANGED: the two smaller images shrink a little to compensate */
-.heroImagesGrid.threeImages .heroImage:not(:first-child) {
-  max-height: 150px;
+/* ===== Stats ===== */
+.statSection { background: var(--ink); padding: var(--space-8) var(--gutter); }
+
+.statContainer {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
 }
 
-.heroImagesGrid.twoImages {
+.statItem { text-align: left; padding-left: var(--space-4); border-left: 2px solid var(--red); }
+
+.statNumber {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  color: var(--paper);
+  line-height: 1;
+  margin-bottom: var(--space-2);
+}
+
+.statLabel { color: rgba(246, 243, 238, 0.65); }
+
+/* ===== Services ===== */
+.servicesSection { padding: var(--section-padding-y) 0; background: var(--paper); }
+
+.servicesContainer { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
+
+.sectionHeading { max-width: 620px; margin: 0 0 var(--space-8); text-align: left; }
+
+.eyebrow { display: block; margin-bottom: var(--space-2); color: var(--red); }
+
+.servicesTitle { margin: 0; font-size: var(--text-3xl); }
+
+.servicesGrid { display: grid; grid-template-columns: 1fr; gap: var(--space-5); }
+@media (min-width: 768px)  { .servicesGrid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1200px) { .servicesGrid { grid-template-columns: repeat(4, 1fr); } }
+
+.serviceCard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
   height: 100%;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--transition-fast);
+}
+.serviceCard:hover { border-color: var(--ink); }
+
+.serviceImageWrapper {
+  aspect-ratio: 4 / 3;
+  max-height: 200px;
+  overflow: hidden;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
 }
 
-.heroImagesGrid.twoImages .heroImage {
-  max-height: 220px;
-  flex: 1;
+.serviceImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-base);
 }
+.serviceCard:hover .serviceImage { transform: scale(1.03); }
 
-/* Mobile Hero */
-.heroMobileLayout { display: none; }
+.serviceContent { display: flex; flex-direction: column; flex: 1; padding: var(--space-5); }
 
+.serviceTitle { margin: 0 0 var(--space-2); font-size: var(--text-xl); }
+
+.serviceDescription { margin: 0 0 var(--space-4); color: var(--muted); font-size: var(--text-sm); line-height: var(--leading-normal); }
+
+.serviceMore {
+  margin-top: auto;
+  display: inline-flex;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+}
+.serviceArrow { transition: transform var(--transition-fast); }
+.serviceCard:hover .serviceArrow { transform: translateX(4px); }
+
+/* ===== Why Marinc ===== */
+.whySection { padding: var(--section-padding-y) 0; background: var(--paper-2); overflow-x: clip; }
+
+.whyContainer {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  align-items: center;
+}
+@media (min-width: 768px) { .whyContainer { grid-template-columns: 1fr 1fr; } }
+
+.whyTitle { margin: 0 0 var(--space-5); font-size: var(--text-3xl); }
+
+.whyList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+
+.whyItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+  line-height: var(--leading-normal);
+}
+.whyItem:last-child { border-bottom: none; padding-bottom: 0; }
+
+.whyCheck { flex-shrink: 0; margin-top: 2px; color: var(--led-in); font-weight: 800; }
+
+.whyImageWrapper {
+  aspect-ratio: 4 / 3;
+  max-height: 420px;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.whyImage { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+
+/* ===== Responsive ===== */
 @media (max-width: 1024px) {
-  .heroSection {
-    min-height: auto;
-    padding: var(--space-8) var(--gutter);
-  }
+  .heroSection { min-height: auto; padding: var(--space-8) var(--gutter); }
+  .heroContainer { gap: var(--space-6); }
+  .heroPosterContainer { height: 42vh; min-height: 42vh; }
+  .partnerLogoLink { flex: 0 0 160px; margin: 0 var(--space-4); }
+  .partnerLogo { height: 48px; max-width: 130px; }
+}
 
-  .heroContainer {
-    gap: var(--space-6);
-  }
-
-  .heroPosterContainer {
-    min-height: 42vh;
-    height: 42vh;
-  }
-
-  .partnerLogoLink {
-    flex: 0 0 160px;
-    margin: 0 var(--space-4);
-  }
-
-  .partnerLogo {
-    height: 52px;
-    max-width: 130px;
-  }
-
-  .statContainer {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-5);
-  }
-
-  .statNumber {
-    font-size: var(--text-3xl);
-  }
+@media (max-width: 900px) {
+  .statContainer { grid-template-columns: repeat(2, 1fr); gap: var(--space-6) var(--space-5); }
+  .statNumber { font-size: var(--text-3xl); }
 }
 
 @media (max-width: 768px) {
@@ -290,128 +361,25 @@
     text-align: center;
   }
 
-  .heroContainer { grid-template-columns: 1fr; padding: 0; }
-  .heroSection { min-height: auto; padding: var(--space-6) var(--gutter); }
-
-  .heroPosterContainer {
-    min-height: 36vh;
-    height: 36vh;
-  }
+  .heroContainer { grid-template-columns: 1fr; }
+  .heroSection { padding: var(--space-6) var(--gutter); }
+  .heroPosterContainer { height: 36vh; min-height: 36vh; }
 
   .heroMobileImages { width: 100%; max-height: 260px; }
+  .heroMobileImages .heroImageWrapper { height: 260px; }
   .heroMobileImages .heroImagesGrid.threeImages { max-height: 260px; gap: 0.75rem; }
   .heroMobileImages .heroImagesGrid.threeImages .heroImage { max-height: 120px; }
-  /* CHANGED: on mobile the wide first image also gets more height than the others */
   .heroMobileImages .heroImagesGrid.threeImages .heroImage:first-child { max-height: 150px; }
   .heroMobileImages .heroImagesGrid.threeImages .heroImage:not(:first-child) { max-height: 100px; }
   .heroMobileImages .heroImagesGrid.twoImages .heroImage { max-height: 120px; }
 
   .heroMobileContent { display: flex; flex-direction: column; gap: var(--space-3); }
   .heroMobileContent .heroTitle { font-size: var(--text-3xl); }
-  .heroMobileContent .heroDescription { font-size: var(--text-base); max-width: 100%; }
-
+  .heroMobileContent .heroDescription { max-width: 100%; font-size: var(--text-base); }
   .heroMobileNavigation { display: flex; gap: 0.5rem; margin-top: var(--space-2); }
 
-  .heroButtons {
-    justify-content: center;
-  }
-
-  .servicesSection {
-    padding-left: var(--gutter);
-    padding-right: var(--gutter);
-  }
-
-  .whyContainer {
-    padding: 0 var(--gutter);
-  }
-
-  .whyImageWrapper {
-    max-height: 280px;
-  }
-}
-
-/* Partner Brands */
-.partnersSection {
-  background: var(--color-bg-subtle);
-  padding: var(--space-6) 0;
-  overflow: hidden;
-}
-
-.partnersContainer { max-width: 100%; margin: 0 auto; }
-
-.sliderWrapper { overflow: hidden; position: relative; width: 100%; }
-
-.sliderTrack {
-  display: flex;
-  width: max-content;
-  animation: scroll 22s linear infinite;
-}
-
-.partnerLogoLink {
-  flex: 0 0 220px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 var(--space-5);
-}
-
-.partnerLogo {
-  height: 70px;
-  width: auto;
-  max-width: 160px;
-  object-fit: contain;
-  transition: all var(--transition-base);
-  filter: grayscale(60%) opacity(0.7);
-}
-
-.partnerLogo:hover {
-  filter: grayscale(0%) opacity(1);
-  transform: translateY(-2px);
-}
-
-@keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.sliderWrapper:hover .sliderTrack { animation-play-state: paused; }
-
-/* Stat Strip — new section */
-.statSection {
-  background: var(--color-bg-dark);
-  padding: var(--space-8) var(--space-5);
-}
-
-.statContainer {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-5);
-}
-
-.statItem { text-align: center; }
-
-.statNumber {
-  display: block;
-  font-family: var(--font-heading);
-  font-size: var(--text-4xl);
-  font-weight: 800;
-  color: var(--color-secondary);
-  line-height: 1;
-  margin-bottom: var(--space-2);
-}
-
-.statLabel {
-  font-size: var(--text-sm);
-  color: rgba(255, 255, 255, 0.75);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-@media (max-width: 900px) {
-  .statContainer { grid-template-columns: repeat(2, 1fr); gap: var(--space-6); }
-  .statNumber { font-size: var(--text-3xl); }
+  .whyImageWrapper { max-height: 280px; }
+  .servicesTitle, .whyTitle { font-size: var(--text-2xl); }
 }
 
 @media (max-width: 480px) {
@@ -419,197 +387,21 @@
   .statNumber { font-size: var(--text-2xl); }
 }
 
-/* Services */
-.servicesSection {
-  padding: var(--section-padding-y) 0;
-  background: var(--color-bg);
-}
-
-.servicesContainer {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-}
-
-.sectionHeading { max-width: 620px; margin: 0 auto var(--space-8); text-align: center; }
-
-.eyebrow {
-  display: block;
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--color-secondary-dark);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: var(--space-2);
-}
-
-.servicesTitle {
-  font-size: var(--text-3xl);
-  font-weight: 800;
-  color: var(--color-ink);
-  margin: 0;
-}
-
-.servicesGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-6);
-}
-
-@media (min-width: 768px)  { .servicesGrid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1200px) { .servicesGrid { grid-template-columns: repeat(4, 1fr); } }
-
-.serviceCard {
-  background: var(--color-bg);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-  text-decoration: none;
-  display: block;
-  border: 1px solid var(--color-border);
-}
-
-.serviceCard:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: transparent;
-}
-
-.serviceImageWrapper {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  max-height: 200px;
-  overflow: hidden;
-  background: var(--color-bg-subtle);
-}
-
-.serviceImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  transition: transform var(--transition-base);
-}
-
-.serviceCard:hover .serviceImage { transform: scale(1.05); }
-
-.serviceContent { padding: var(--space-5); }
-
-.serviceTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: var(--color-ink);
-  margin-bottom: var(--space-2);
-}
-
-.serviceCard:hover .serviceTitle { color: var(--color-primary); }
-
-.serviceDescription {
-  color: var(--color-muted);
-  line-height: var(--leading-normal);
-  font-size: var(--text-sm);
-  margin: 0;
-}
-
-/* Why Marinc — replaces the old parallax section entirely */
-.whySection {
-  padding: var(--section-padding-y) 0;
-  background: var(--color-bg-subtle);
-  /* Prevents the off-axis reveal start positions from ever causing horizontal scroll */
-  overflow-x: clip;
-}
-
-.whyContainer {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 0 var(--space-5);
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-8);
-  align-items: center;
-}
-
-@media (min-width: 768px) {
-  .whyContainer { grid-template-columns: 1fr 1fr; }
-}
-
-.whyTitle {
-  font-size: var(--text-3xl);
-  font-weight: 800;
-  color: var(--color-ink);
-  margin: 0 0 var(--space-5);
-}
-
-.whyList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.whyItem {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  font-size: var(--text-base);
-  color: var(--color-body);
-  line-height: var(--leading-normal);
-}
-
-.whyCheck {
-  color: var(--color-primary);
-  font-weight: 800;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.whyImageWrapper {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  max-height: 420px;
-  aspect-ratio: 4 / 3;
-  background: var(--color-bg-subtle);
-}
-
-.whyImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-@media (max-width: 768px) {
-  .servicesTitle, .whyTitle { font-size: var(--text-2xl); }
-}
-
 /* ==========================================================================
-   HERO ENTRANCE (plays once on initial load; the class is removed from the
-   JSX after the intro window so slide rotation never replays it)
+   HERO ENTRANCE (plays once; classes removed from JSX after the intro window)
    ========================================================================== */
-
 @keyframes heroIntro {
   from {
     opacity: 0;
-    transform: translate3d(var(--intro-x, 0px), var(--intro-y, 18px), 0)
-      scale(var(--intro-scale, 1));
+    transform: translate3d(var(--intro-x, 0px), var(--intro-y, 18px), 0) scale(var(--intro-scale, 1));
   }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  to { opacity: 1; transform: none; }
 }
 
 .introItem {
   animation: heroIntro var(--intro-duration, 800ms) cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--intro-delay, 0ms);
 }
-
-/* Per-element variants (declared after .introItem; same specificity) */
 .introTitle { --intro-y: 22px; }
 .introButtons { --intro-y: 14px; }
 .introImages { --intro-x: 20px; --intro-y: 0px; --intro-scale: 0.97; }
@@ -617,12 +409,7 @@
 
 /* ==========================================================================
    SCROLL REVEAL
-   - .reveal       : element reveals itself when it enters the viewport
-   - .revealChild  : element reveals when its nearest [data-reveal] ancestor
-                     (which receives .revealVisible) enters the viewport
-   Stagger is driven by --reveal-delay (nth-child rules or inline style).
    ========================================================================== */
-
 .reveal,
 .revealChild {
   --reveal-x: 0px;
@@ -639,12 +426,10 @@
 .reveal.revealVisible,
 .revealVisible .revealChild {
   opacity: 1;
-  /* "none" (not translate(0)) so no lingering containing block / stacking transform */
   transform: none;
   will-change: auto;
 }
 
-/* Variants */
 .revealSoft { --reveal-y: 16px; }
 
 .revealStat { --reveal-y: 20px; --reveal-duration: 600ms; }
@@ -655,42 +440,25 @@
 .revealHeading { --reveal-y: 20px; --reveal-duration: 650ms; }
 .revealHeading + .revealHeading { --reveal-delay: 100ms; }
 
-/* Service card wrapper — keeps the card's own hover transform untouched */
 .revealService { --reveal-y: 35px; }
 .revealService:nth-child(4n + 2) { --reveal-delay: 100ms; }
 .revealService:nth-child(4n + 3) { --reveal-delay: 200ms; }
 .revealService:nth-child(4n + 4) { --reveal-delay: 300ms; }
 
-/* Two-column services grid: stagger only across the row */
 @media (min-width: 768px) and (max-width: 1199px) {
   .revealService:nth-child(2n + 1) { --reveal-delay: 0ms; }
   .revealService:nth-child(2n) { --reveal-delay: 100ms; }
 }
 
-/* Why Marinc */
-.fromLeft {
-  --reveal-x: -35px;
-  --reveal-y: 0px;
-  --reveal-duration: 800ms;
-}
-
-.fromRight {
-  --reveal-x: 35px;
-  --reveal-y: 0px;
-  --reveal-scale: 0.97;
-  --reveal-duration: 800ms;
-  --reveal-delay: 120ms;
-}
-
+.fromLeft { --reveal-x: -35px; --reveal-y: 0px; --reveal-duration: 800ms; }
+.fromRight { --reveal-x: 35px; --reveal-y: 0px; --reveal-scale: 0.97; --reveal-duration: 800ms; --reveal-delay: 120ms; }
 .revealItemUp { --reveal-y: 16px; --reveal-duration: 600ms; }
 
-/* Two-column stat grid (≤900px): stagger across the row only */
 @media (max-width: 900px) {
   .revealStat:nth-child(n) { --reveal-delay: 0ms; }
   .revealStat:nth-child(even) { --reveal-delay: 100ms; }
 }
 
-/* Mobile: shorter distances, faster timing, no sideways movement */
 @media (max-width: 768px) {
   .introItem { --intro-duration: 600ms; --intro-y: 12px; }
   .introTitle { --intro-y: 14px; }
@@ -698,9 +466,7 @@
   .introImages { --intro-x: 0px; --intro-y: 14px; --intro-scale: 0.98; }
   .introPoster { --intro-y: 0px; --intro-scale: 0.98; }
 
-  .reveal,
-  .revealChild { --reveal-y: 20px; --reveal-duration: 550ms; }
-
+  .reveal, .revealChild { --reveal-y: 20px; --reveal-duration: 550ms; }
   .revealSoft { --reveal-y: 12px; }
   .revealStat { --reveal-y: 14px; --reveal-duration: 500ms; }
   .revealHeading { --reveal-y: 14px; --reveal-duration: 550ms; }
@@ -708,23 +474,21 @@
   .revealService:nth-child(n) { --reveal-delay: 0ms; }
   .revealItemUp { --reveal-y: 12px; --reveal-duration: 500ms; }
 
-  .fromLeft,
-  .fromRight { --reveal-x: 0px; --reveal-y: 20px; --reveal-duration: 600ms; }
+  .fromLeft, .fromRight { --reveal-x: 0px; --reveal-y: 20px; --reveal-duration: 600ms; }
   .fromRight { --reveal-scale: 0.98; --reveal-delay: 0ms; }
 }
 
-/* Reduced motion: content simply appears, no movement, no delays.
-   (Complements the global reduced-motion rule in the design system.) */
 @media (prefers-reduced-motion: reduce) {
-  .introItem {
-    animation: none;
-  }
+  .introItem { animation: none; }
 
-  .reveal,
-  .revealChild {
+  .reveal, .revealChild {
     opacity: 1;
     transform: none;
     transition: none;
     will-change: auto;
   }
+
+  .sliderTrack { animation: none; }
+  .heroImageWrapper, .heroImage, .serviceImage, .serviceArrow { transition: none; }
+  .heroImage:hover, .serviceCard:hover .serviceImage, .serviceCard:hover .serviceArrow { transform: none; }
 }

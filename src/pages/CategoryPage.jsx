@@ -1,19 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { fetchCategories, fetchSubcategories, fetchProductsForSubcategory } from '../utils/api';
-import styles from './CategoryPage.module.css';
 import ProductCard from '../components/ProductCard';
+import { fetchCategories, fetchSubcategories, fetchProductsForSubcategory } from '../utils/api';
+import { getZoneFromType } from '../utils/zones';
+import styles from './CategoryPage.module.css';
 
-// Import category images
 import FireSafetyImg from '../assets/FireSafety.jpg';
 import ICTImg from '../assets/ICT.webp';
 import SolarImg from '../assets/Solare.webp';
+
+const matchesAny = (type, name, types, words) =>
+  types.includes(type) || words.some((w) => name.includes(w));
+
+// Pure helper: lives outside the component so effects can depend on it safely
+const getCategoryDisplay = (category, fallbackName) => {
+  if (!category) return { image: null, displayName: fallbackName };
+
+  const type = String(category.type || '').toLowerCase();
+  const name = String(category.name || '').toLowerCase();
+  let image = null;
+
+  if (matchesAny(type, name, ['fire_safety', 'fire', 'fire-safety', 'firesafety'], ['fire'])) image = FireSafetyImg;
+  else if (matchesAny(type, name, ['ict', 'telecom', 'telecommunication'], ['ict', 'telecom'])) image = ICTImg;
+  else if (matchesAny(type, name, ['solar', 'solar_solutions', 'solar-solutions'], ['solar'])) image = SolarImg;
+
+  return { image, displayName: category.name };
+};
 
 const CategoryPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [category, setCategory] = useState(null);
   const [subcategories, setSubcategories] = useState([]);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
@@ -22,139 +41,92 @@ const CategoryPage = () => {
   const [error, setError] = useState('');
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Get category-specific image and display name
-  const getCategoryDisplay = (category) => {
-    if (!category) return { image: null, displayName: slug };
+  const targetSub = location.state?.selectedSubcategory || location.hash?.substring(1) || '';
 
-    const categoryType = String(category.type || '').toLowerCase();
-    const categoryName = category.name.toLowerCase();
-
-    if (
-      ['fire_safety', 'fire', 'fire-safety', 'firesafety'].includes(categoryType) ||
-      categoryName.includes('fire')
-    ) {
-      return { image: FireSafetyImg, displayName: category.name };
-    }
-
-    if (
-      ['ict', 'telecom', 'telecommunication'].includes(categoryType) ||
-      categoryName.includes('ict') ||
-      categoryName.includes('telecom')
-    ) {
-      return { image: ICTImg, displayName: category.name };
-    }
-
-    if (
-      ['solar', 'solar_solutions', 'solar-solutions'].includes(categoryType) ||
-      categoryName.includes('solar')
-    ) {
-      return { image: SolarImg, displayName: category.name };
-    }
-
-    return { image: null, displayName: category.name };
-  };
-
-  // Fetch category by slug
+  // Category by slug
   useEffect(() => {
-    const getCategory = async () => {
-      try {
-        const cats = await fetchCategories();
-        const found = cats.find((cat) => cat.slug === slug);
-        setCategory(found || null);
-        setSubcategories([]);
-        setSelectedSubcategory(null);
-        setImageLoaded(false); // Reset image loaded state
-      } catch {
-        setCategory(null);
-        setSubcategories([]);
-        setSelectedSubcategory(null);
-      }
-    };
-    getCategory();
+    let cancelled = false;
+    setCategory(null);
+    setSubcategories([]);
+    setSelectedSubcategory(null);
+
+    fetchCategories()
+      .then((cats) => { if (!cancelled) setCategory(cats.find((c) => c.slug === slug) || null); })
+      .catch(() => { if (!cancelled) setCategory(null); });
+
+    return () => { cancelled = true; };
   }, [slug]);
 
-  // Fetch subcategories for this category
+  // Subcategories. Selection is preserved on refresh events; the hash only
+  // picks the initial one, so a 'subcategoriesUpdated' event no longer resets the user.
   useEffect(() => {
-    if (!category) return;
+    if (!category) return undefined;
+    let cancelled = false;
 
     const getSubs = async () => {
       try {
         const subs = await fetchSubcategories(category.slug);
+        if (cancelled) return;
         const filtered = subs.filter(
-          (sub) =>
-            sub.category === category.id ||
-            sub.category === category.slug ||
-            !sub.category ||
-            sub.category === category
+          (s) => s.category === category.id || s.category === category.slug || !s.category
         );
         setSubcategories(filtered);
-
-        // Determine which subcategory to show
-        const targetSubcategorySlug =
-          location.state?.selectedSubcategory || location.hash?.substring(1);
-
-        if (targetSubcategorySlug) {
-          const targetSubcategory = filtered.find((sub) => sub.slug === targetSubcategorySlug);
-          setSelectedSubcategory(targetSubcategory || filtered[0] || null);
-        } else {
-          // Default to first subcategory if available
-          setSelectedSubcategory(filtered[0] || null);
-        }
+        setSelectedSubcategory((current) => {
+          if (current && filtered.some((s) => s.id === current.id)) return current;
+          return filtered.find((s) => s.slug === targetSub) || filtered[0] || null;
+        });
       } catch {
-        setSubcategories([]);
-        setSelectedSubcategory(null);
+        if (!cancelled) { setSubcategories([]); setSelectedSubcategory(null); }
       }
     };
 
     getSubs();
+    window.addEventListener('subcategoriesUpdated', getSubs);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('subcategoriesUpdated', getSubs);
+    };
+  }, [category, targetSub]);
 
-    const handleSubcategoriesUpdated = () => getSubs();
-    window.addEventListener('subcategoriesUpdated', handleSubcategoriesUpdated);
-
-    return () => window.removeEventListener('subcategoriesUpdated', handleSubcategoriesUpdated);
-  }, [category, location.state?.selectedSubcategory, location.hash]);
-
-  // Fetch products for selected subcategory
+  // Products for the selected subcategory (ignores stale responses)
   useEffect(() => {
-    if (!selectedSubcategory) {
-      setProducts([]);
-      return;
-    }
+    if (!selectedSubcategory) { setProducts([]); return undefined; }
+    let cancelled = false;
 
     setLoading(true);
     setError('');
     fetchProductsForSubcategory(selectedSubcategory.slug)
       .then((data) => {
-        const items = data?.results ? data.results : Array.isArray(data) ? data : [];
-        setProducts(items);
-        setError('');
+        if (cancelled) return;
+        setProducts(data?.results || (Array.isArray(data) ? data : []));
       })
       .catch(() => {
+        if (cancelled) return;
         setProducts([]);
         setError('Could not load products for this subcategory.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
   }, [selectedSubcategory]);
 
-  // Handle subcategory selection
-  const handleSubcategorySelect = (subcategory) => {
-    setSelectedSubcategory(subcategory);
-    navigate(`/category/${slug}#${subcategory.slug}`, { replace: true });
-  };
+  const categoryDisplay = getCategoryDisplay(category, slug);
+  const zone = getZoneFromType(category?.type);
 
-  // Preload image for better quality
+  // Preload the hero image
   useEffect(() => {
-    const categoryDisplay = getCategoryDisplay(category);
-    if (categoryDisplay.image) {
-      const img = new Image();
-      img.src = categoryDisplay.image;
-      img.onload = () => setImageLoaded(true);
-    } else {
-      setImageLoaded(true);
-    }
-  }, [category]);
+    setImageLoaded(false);
+    if (!categoryDisplay.image) { setImageLoaded(true); return undefined; }
+    const img = new Image();
+    img.onload = () => setImageLoaded(true);
+    img.src = categoryDisplay.image;
+    return () => { img.onload = null; };
+  }, [categoryDisplay.image]);
 
-  const categoryDisplay = getCategoryDisplay(category);
+  const handleSubcategorySelect = (sub) => {
+    setSelectedSubcategory(sub);
+    navigate(`/category/${slug}#${sub.slug}`, { replace: true });
+  };
 
   const crumbs = [
     { label: 'Home', path: '/' },
@@ -162,113 +134,113 @@ const CategoryPage = () => {
     ...(selectedSubcategory ? [{ label: selectedSubcategory.name, path: '#' }] : []),
   ];
 
-  return (
-    <div className={styles.pageWrapper}>
-      {/* Hero Banner Section */}
-      <div className={styles.heroSection}>
-        <div
-          className={styles.heroBackground}
-          style={{
-            backgroundImage: categoryDisplay.image ? `url(${categoryDisplay.image})` : 'none',
-            backgroundColor: categoryDisplay.image ? 'transparent' : '#6096B4',
-            opacity: imageLoaded ? 1 : 0.8,
-            transition: 'opacity 0.3s ease-in-out',
-          }}
+  const renderSubButtons = (isPill) =>
+    subcategories.map((sub) => {
+      const active = selectedSubcategory?.id === sub.id;
+      const base = isPill ? styles.categoryPill : styles.subcategoryButton;
+      const on = isPill ? styles.activePill : styles.active;
+      return (
+        <button
+          key={sub.id}
+          type="button"
+          className={`${base} ${active ? on : ''}`}
+          aria-current={active ? 'true' : undefined}
+          onClick={() => handleSubcategorySelect(sub)}
         >
-          <div className={styles.heroOverlay}></div>
-          <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>{categoryDisplay.displayName}</h1>
-          </div>
-        </div>
-      </div>
+          {sub.name}
+        </button>
+      );
+    });
 
-      {/* Breadcrumbs */}
+  const renderContent = () => {
+    if (!selectedSubcategory) {
+      return (
+        <div className={styles.selectPrompt}>
+          <span className={`label-mono ${styles.stateLabel}`}>Catalogue</span>
+          <h3>Select a category</h3>
+          <p>Choose a subcategory to view the available products.</p>
+        </div>
+      );
+    }
+    if (error) return <div className={styles.errorMessage} role="alert"><p>{error}</p></div>;
+    if (loading) {
+      return (
+        <div className={styles.loadingState} role="status">
+          <div className={styles.loadingSpinner} />
+          <p>Loading products…</p>
+        </div>
+      );
+    }
+    if (products.length === 0) {
+      return (
+        <div className={styles.emptyState}>
+          <span className={`label-mono ${styles.stateLabel}`}>0 products</span>
+          <h3>No products available</h3>
+          <p>No products are currently listed in {selectedSubcategory.name}.</p>
+        </div>
+      );
+    }
+    return (
+      <>
+        <div className={styles.categoryHeader}>
+          <h2>{selectedSubcategory.name}</h2>
+          <p className={styles.quotationMessage}>
+            Add products to your quote list and request a quotation for your selected items.
+          </p>
+        </div>
+        <div className={styles.productsGrid}>
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} zoneType={category?.type} />
+          ))}
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div className={styles.pageWrapper} style={{ '--zone-color': zone.color }}>
+      <header className={styles.heroSection}>
+        {categoryDisplay.image && (
+          <div
+            className={styles.heroBackground}
+            style={{
+              backgroundImage: `url(${categoryDisplay.image})`,
+              opacity: imageLoaded ? 1 : 0,
+            }}
+            aria-hidden="true"
+          />
+        )}
+        <div className={styles.heroOverlay} aria-hidden="true" />
+        <div className={styles.heroContent}>
+          <span className={`label-mono ${styles.heroEyebrow}`}>Product category</span>
+          <h1 className={styles.heroTitle}>{categoryDisplay.displayName}</h1>
+        </div>
+      </header>
+
       <div className={styles.breadcrumbWrapper}>
         <Breadcrumbs crumbs={crumbs} />
       </div>
 
-      {/* Main Content */}
       <section className={styles.mainSection}>
         <div className={styles.containerLayout}>
-          {/* Desktop Sidebar */}
-          <aside className={styles.sidebar}>
+          <aside className={styles.sidebar} aria-label="Subcategories">
             <div className={styles.sidebarContent}>
-              <h3 className={styles.sidebarTitle}>Product Categories</h3>
+              <h2 className={styles.sidebarTitle}>Product categories</h2>
               <div className={styles.subcategoryList}>
-                {subcategories.length === 0 ? (
-                  <div className={styles.noSubcategories}>No subcategories available</div>
-                ) : (
-                  subcategories.map((sub) => (
-                    <button
-                      key={sub.id}
-                      className={`${styles.subcategoryButton} ${
-                        selectedSubcategory?.id === sub.id ? styles.active : ''
-                      }`}
-                      onClick={() => handleSubcategorySelect(sub)}
-                    >
-                      {sub.name}
-                    </button>
-                  ))
-                )}
+                {subcategories.length === 0
+                  ? <div className={styles.noSubcategories}>No subcategories available</div>
+                  : renderSubButtons(false)}
               </div>
             </div>
           </aside>
 
-          {/* Products Section */}
           <main className={styles.mainContent}>
-            {/* Mobile Category Pills - Horizontal Scrollable */}
-            <div className={styles.mobileCategories}>
-              <div className={styles.mobileCategoryPills}>
-                {subcategories.map((sub) => (
-                  <button
-                    key={sub.id}
-                    className={`${styles.categoryPill} ${
-                      selectedSubcategory?.id === sub.id ? styles.activePill : ''
-                    }`}
-                    onClick={() => handleSubcategorySelect(sub)}
-                  >
-                    {sub.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {!selectedSubcategory ? (
-              <div className={styles.selectPrompt}>
-                <div className={styles.selectPromptIcon}>📋</div>
-                <h3>Select a Category</h3>
-                <p>Please select a subcategory to view available products.</p>
-              </div>
-            ) : error ? (
-              <div className={styles.errorMessage}>
-                <p>{error}</p>
-              </div>
-            ) : loading ? (
-              <div className={styles.loadingState}>
-                <div className={styles.loadingSpinner}></div>
-                <p>Loading products...</p>
-              </div>
-            ) : products.length > 0 ? (
-              <div>
-                <div className={styles.categoryHeader}>
-                  <h2>{selectedSubcategory.name}</h2>
-                  <p className={styles.quotationMessage}>
-                    Add products to your cart and request a quotation for your selected items.
-                  </p>
-                </div>
-                <div className={styles.productsGrid}>
-                  {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyStateIcon}>📦</div>
-                <h3>No Products Available</h3>
-                <p>No products are currently available in {selectedSubcategory.name}.</p>
-              </div>
+            {subcategories.length > 0 && (
+              <nav className={styles.mobileCategories} aria-label="Subcategories">
+                <div className={styles.mobileCategoryPills}>{renderSubButtons(true)}</div>
+              </nav>
             )}
+            {renderContent()}
           </main>
         </div>
       </section>

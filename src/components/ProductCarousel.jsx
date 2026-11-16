@@ -1,169 +1,142 @@
 import { API_BASE_URL } from '../config/api';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { getZoneFromType } from '../utils/zones';
 import styles from './ProductCarousel.module.css';
+
+const getVisibleCount = () => {
+  if (typeof window === 'undefined') return 4;
+  if (window.innerWidth >= 1200) return 4;
+  if (window.innerWidth >= 768) return 3;
+  if (window.innerWidth >= 480) return 2;
+  return 1;
+};
 
 const ProductCarousel = ({ productSlug }) => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const carouselRef = useRef(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(getVisibleCount);
 
   useEffect(() => {
-    const fetchRelatedProducts = async () => {
+    if (!productSlug) return undefined;
+    let cancelled = false;
+
+    (async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${API_BASE_URL}/api/products/${productSlug}/related/`
-        );
+        const response = await fetch(`${API_BASE_URL}/api/products/${productSlug}/related/`);
         if (!response.ok) throw new Error('Failed to fetch related products');
         const data = await response.json();
-        setRelatedProducts(data);
-        setCurrentIndex(0); // Reset to first slide when products change
+        if (cancelled) return;
+        setRelatedProducts(Array.isArray(data) ? data : data.results || []);
+        setCurrentIndex(0);
       } catch (error) {
         console.error('Error fetching related products:', error);
+        if (!cancelled) setRelatedProducts([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    };
+    })();
 
-    if (productSlug) {
-      fetchRelatedProducts();
-    }
+    return () => { cancelled = true; };
   }, [productSlug]);
 
-  const getVisibleCount = () => {
-    if (window.innerWidth >= 1200) return 4;
-    if (window.innerWidth >= 768) return 3;
-    if (window.innerWidth >= 480) return 2;
-    return 1;
-  };
-
-  const [visibleCount, setVisibleCount] = useState(getVisibleCount());
-
+  // Resize: update the count, then clamp the index in the same pass
   useEffect(() => {
-    const handleResize = () => {
-      const newVisibleCount = getVisibleCount();
-      if (newVisibleCount !== visibleCount) {
-        setVisibleCount(newVisibleCount);
-        // Adjust current index if needed
-        const newMaxIndex = Math.max(0, relatedProducts.length - newVisibleCount);
-        if (currentIndex > newMaxIndex) {
-          setCurrentIndex(newMaxIndex);
-        }
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [visibleCount, currentIndex, relatedProducts.length]);
+    const onResize = () => setVisibleCount(getVisibleCount());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const maxIndex = Math.max(0, relatedProducts.length - visibleCount);
+  const safeIndex = Math.min(currentIndex, maxIndex);
 
-  const handlePrev = () => {
-    if (!isTransitioning && currentIndex > 0) {
-      setIsTransitioning(true);
-      setCurrentIndex(prev => prev - 1);
-      setTimeout(() => setIsTransitioning(false), 300);
-    }
+  const prev = useCallback(() => setCurrentIndex((i) => Math.max(0, Math.min(i, maxIndex) - 1)), [maxIndex]);
+  const next = useCallback(() => setCurrentIndex((i) => Math.min(maxIndex, i + 1)), [maxIndex]);
+
+  // Arrow keys only while focus is inside the carousel (not hijacked page-wide)
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') prev();
+    if (e.key === 'ArrowRight') next();
   };
-
-  const handleNext = () => {
-    if (!isTransitioning && currentIndex < maxIndex) {
-      setIsTransitioning(true);
-      setCurrentIndex(prev => prev + 1);
-      setTimeout(() => setIsTransitioning(false), 300);
-    }
-  };
-
-  const goToSlide = (index) => {
-    if (!isTransitioning && index !== currentIndex) {
-      setIsTransitioning(true);
-      setCurrentIndex(index);
-      setTimeout(() => setIsTransitioning(false), 300);
-    }
-  };
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'ArrowRight') handleNext();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, maxIndex, isTransitioning]);
 
   if (loading) {
     return (
       <div className={styles.carouselContainer}>
-        <h2 className={styles.title}>Related Products</h2>
-        <div className={styles.loading}>Loading related products...</div>
+        <h2 className={styles.title}>Related products</h2>
+        <div className={styles.loading} role="status">Loading related products…</div>
       </div>
     );
   }
 
-  if (!relatedProducts || relatedProducts.length === 0) {
-    return null;
-  }
+  if (relatedProducts.length === 0) return null;
 
   return (
     <div className={styles.carouselContainer}>
-      <h2 className={styles.title}>Related Products</h2>
-      
-      <div className={styles.carouselWrapper}>
-        {currentIndex > 0 && (
-          <button
-            className={`${styles.navButton} ${styles.navButtonPrev}`}
-            onClick={handlePrev}
-            disabled={isTransitioning}
-            aria-label="Previous products"
-          >
+      <h2 className={styles.title}>Related products</h2>
+
+      <div
+        className={styles.carouselWrapper}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Related products"
+        onKeyDown={handleKeyDown}
+      >
+        {safeIndex > 0 && (
+          <button type="button" className={`${styles.navButton} ${styles.navButtonPrev}`}
+            onClick={prev} aria-label="Previous products">
             &#8249;
           </button>
         )}
 
-        <div className={styles.carouselTrack} ref={carouselRef}>
+        <div className={styles.carouselTrack}>
           <div
             className={styles.carouselInner}
-            style={{
-              transform: `translateX(-${currentIndex * (100 / visibleCount)}%)`,
-            }}
+            style={{ transform: `translateX(-${safeIndex * (100 / visibleCount)}%)` }}
           >
-            {relatedProducts.map((product) => (
-              <div
-                key={product.id}
-                className={styles.productCard}
-                style={{ flex: `0 0 ${100 / visibleCount}%` }}
-              >
-                <Link to={`/product/${product.slug}`} className={styles.cardLink}>
-                  <div className={styles.imageWrapper}>
-                    <img
-                      src={product.image || '/placeholder.png'}
-                      alt={product.name}
-                      className={styles.productImage}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/placeholder.png';
-                      }}
-                    />
-                  </div>
-                  <div className={styles.productInfo}>
-                    <h3 className={styles.productName}>{product.name}</h3>
-                  </div>
-                </Link>
-              </div>
-            ))}
+            {relatedProducts.map((product, i) => {
+              const zone = getZoneFromType(
+                product.category_type || product.category?.type || product.type
+              );
+              const inView = i >= safeIndex && i < safeIndex + visibleCount;
+              return (
+                <div
+                  key={product.id}
+                  className={styles.productCard}
+                  style={{ flex: `0 0 ${100 / visibleCount}%` }}
+                  aria-hidden={!inView}
+                >
+                  <Link
+                    to={`/product/${product.slug}`}
+                    className={styles.cardLink}
+                    style={{ '--zone-color': zone.color }}
+                    tabIndex={inView ? 0 : -1}
+                  >
+                    <div className={styles.imageWrapper}>
+                      <img
+                        src={product.image || '/placeholder.png'}
+                        alt=""
+                        className={styles.productImage}
+                        loading="lazy"
+                        width={400}
+                        height={300}
+                        onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder.png'; }}
+                      />
+                    </div>
+                    <div className={styles.productInfo}>
+                      <h3 className={styles.productName}>{product.name}</h3>
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {currentIndex < maxIndex && (
-          <button
-            className={`${styles.navButton} ${styles.navButtonNext}`}
-            onClick={handleNext}
-            disabled={isTransitioning}
-            aria-label="Next products"
-          >
+        {safeIndex < maxIndex && (
+          <button type="button" className={`${styles.navButton} ${styles.navButtonNext}`}
+            onClick={next} aria-label="Next products">
             &#8250;
           </button>
         )}
@@ -174,12 +147,11 @@ const ProductCarousel = ({ productSlug }) => {
           {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
             <button
               key={idx}
-              className={`${styles.indicator} ${
-                idx === currentIndex ? styles.indicatorActive : ''
-              }`}
-              onClick={() => goToSlide(idx)}
-              disabled={isTransitioning}
+              type="button"
+              className={`${styles.indicator} ${idx === safeIndex ? styles.indicatorActive : ''}`}
+              onClick={() => setCurrentIndex(idx)}
               aria-label={`Go to slide ${idx + 1}`}
+              aria-current={idx === safeIndex ? 'true' : undefined}
             />
           ))}
         </div>

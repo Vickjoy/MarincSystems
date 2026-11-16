@@ -40,7 +40,7 @@ const QuoteDrawer = ({ onClose }) => {
       message += `${index + 1}. ${item.name || `Product #${item.id}`}${sku} × ${item.quantity || 1}\n`;
     });
 
-    const whatsappUrl = `https://wa.me/254721247356?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/254113808073?text=${encodeURIComponent(message)}`;
     clearCart();
     window.open(whatsappUrl, '_blank');
     setSubmitting(false);

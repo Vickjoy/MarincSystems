@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './Home.module.css';
 import PopularProductsCarousel from '../components/PopularProductsCarousel';
 import { fetchHeroBanners } from '../utils/api';
+
 import EatonLogo from '../assets/Eatonn.webp';
 import AlcatelLogo from '../assets/Alcatel.webp';
 import AvayaLogo from '../assets/Avaya.webp';
@@ -11,7 +13,6 @@ import UbiquitiLogo from '../assets/Ubiquiti.webp';
 import GiganetLogo from '../assets/giganet.jpeg';
 import HikvisionLogo from '../assets/hikvision.png';
 
-// Hero images
 import FireImage from '../assets/Fire.png';
 import EImage from '../assets/E.png';
 import FImage from '../assets/F.png';
@@ -21,28 +22,26 @@ import GImage from '../assets/G.png';
 import AImage from '../assets/A.png';
 import BImage from '../assets/B.png';
 
-// Service images
 import AlarmImage from '../assets/xDetect.jpg';
 import VoIPImage from '../assets/VoIP.jpg';
 import IPImage from '../assets/IP.jpg';
 import StructuredCablingImage from '../assets/Structured.jpg';
 
-// "Why Marinc" image
 import WhyImage from '../assets/WHY.jpeg';
 
-// Defined outside the component so the reference is stable (no effect re-runs)
+/* ---------- Static data (module scope = stable references) ---------- */
+
 const permanentSlides = [
   {
     id: 1,
     displayMode: 'standard',
-    subtitle: 'Protect What Matters Most',
+    subtitle: 'Protect what matters most',
     title: 'Advanced Fire Alarm & Detection Systems',
     description:
       'Detect threats early with reliable fire panels, detectors, alarms, and emergency systems designed for fast response and dependable protection.',
     images: [FireImage, EImage, FImage],
     link: '/category/addressable-fire-alarm-detection-systems',
-    bgClass: 'heroSlide1',
-    buttonText: 'Explore Fire Safety',
+    buttonText: 'Explore fire safety',
   },
   {
     id: 2,
@@ -53,39 +52,103 @@ const permanentSlides = [
       'Build a faster, more secure network with enterprise-grade access points, switches, and connectivity solutions designed to keep your business connected.',
     images: [UbiquitiProductImage, CiscoProductImage, GImage],
     link: '/category/ubiquiti-products',
-    bgClass: 'heroSlide2',
-    buttonText: 'Explore Networking',
+    buttonText: 'Explore networking',
   },
   {
     id: 3,
     displayMode: 'standard',
-    subtitle: 'Infrastructure Built for the Future',
+    subtitle: 'Infrastructure built for the future',
     title: 'Structured Cabling & Fiber Solutions',
     description:
       'Create a dependable network foundation with quality Cat6, Cat6A, and fiber optic cabling engineered for speed, stability, and scalability.',
     images: [AImage, BImage],
     link: '/category/giganet-products',
-    bgClass: 'heroSlide3',
-    buttonText: 'Explore Cabling',
+    buttonText: 'Explore cabling',
   },
 ];
 
+const brands = [
+  { logo: AlcatelLogo, name: 'Alcatel', link: 'https://www.al-enterprise.com/' },
+  { logo: AvayaLogo, name: 'Avaya', link: 'https://www.avaya.com/' },
+  { logo: CiscoLogo, name: 'Cisco', link: 'https://www.cisco.com/' },
+  { logo: EatonLogo, name: 'Eaton', link: 'https://www.eaton.com/' },
+  { logo: SiemonLogo, name: 'Siemon', link: 'https://www.siemon.com/' },
+  { logo: UbiquitiLogo, name: 'Ubiquiti', link: 'https://www.ui.com/' },
+  { logo: GiganetLogo, name: 'Giganet', link: 'https://www.giganet.com.eg/' },
+  { logo: HikvisionLogo, name: 'Hikvision', link: 'https://www.hikvision.com/' },
+];
+// Two copies so the -50% marquee loop is seamless
+const marqueeBrands = [...brands, ...brands];
+
+const services = [
+  {
+    id: 1,
+    image: AlarmImage,
+    title: 'Fire Alarm & Detection',
+    description:
+      'Fire safety systems with smoke detectors, heat sensors, and panels. Ensure fast detection, real-time alerts, regulatory compliance, and secure operations.',
+    link: '/category/addressable-fire-alarm-detection-systems',
+  },
+  {
+    id: 2,
+    image: StructuredCablingImage,
+    title: 'Structured Cabling',
+    description:
+      'Fiber optics, Cat6/Cat6a cabling, and management systems. Enable seamless communication, high-speed transmission, scalability, and reduced downtime for businesses.',
+    link: '/category/giganet-products',
+  },
+  {
+    id: 3,
+    image: IPImage,
+    title: 'CCTV / IP Camera',
+    description:
+      'HD IP cameras with night vision, motion detection, and cloud storage. Provide continuous monitoring, analytics, and asset protection around-the-clock.',
+    link: '/category/hikvision',
+  },
+  {
+    id: 4,
+    image: VoIPImage,
+    title: 'VoIP & Telephony',
+    description:
+      'VoIP systems with call routing, conferencing, voicemail-to-email, and mobile integration. Improve collaboration, cut costs, and scale communication efficiently.',
+    link: '/category/alcatel-lucent-products',
+  },
+];
+
+const stats = [
+  { number: '10+', label: 'Years experience' },
+  { number: '500+', label: 'Projects delivered' },
+  { number: String(brands.length), label: 'Trusted brand partners' },
+  { number: '100%', label: 'Customer commitment' },
+];
+
+const whyChoosePoints = [
+  'Authorized Eaton Distributor — certified partnership with globally trusted brands',
+  'Quality Products — we deliver only premium solutions that meet the highest industry standards',
+  'Certified Technicians — professional installation and support services guaranteed',
+  'Competitive Pricing — best value solutions without compromising on quality',
+];
 
 const HERO_INTRO_MS = 1800;
+const SLIDE_MS = 6000;
+const FADE_MS = 300;
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Hooks / small components ---------- */
 
 const useScrollReveal = (enabled, visibleClass) => {
   const rootRef = useRef(null);
 
   useEffect(() => {
     if (!enabled) return undefined;
-
     const root = rootRef.current;
     if (!root) return undefined;
 
     const targets = root.querySelectorAll('[data-reveal]');
 
-    // Graceful fallback: show everything if IntersectionObserver is missing
     if (typeof IntersectionObserver === 'undefined') {
       targets.forEach((el) => el.classList.add(visibleClass));
       return undefined;
@@ -104,82 +167,45 @@ const useScrollReveal = (enabled, visibleClass) => {
     );
 
     targets.forEach((el) => observer.observe(el));
-
     return () => observer.disconnect();
   }, [enabled, visibleClass]);
 
   return rootRef;
 };
 
+const HeroDots = ({ count, current, onSelect }) =>
+  Array.from({ length: count }).map((_, index) => (
+    <button
+      key={index}
+      type="button"
+      onClick={() => onSelect(index)}
+      className={`${styles.heroDot} ${index === current ? styles.heroDotActive : ''}`}
+      aria-label={`Go to slide ${index + 1}`}
+      aria-current={index === current ? 'true' : undefined}
+    />
+  ));
+
+/* ---------- Page ---------- */
+
 const Home = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
-  // True only for the first moments after the page loads. Once false, the hero
-  // entrance classes are removed so slide rotation / mode switches never
-  // replay the entrance animation.
+  // True only right after load; afterwards the entrance classes are removed so
+  // slide rotation never replays the intro animation.
   const [introActive, setIntroActive] = useState(true);
+  const fadeTimer = useRef(null);
 
   const revealRootRef = useScrollReveal(!loading, styles.revealVisible);
-
-  const services = [
-    {
-      id: 1,
-      image: AlarmImage,
-      title: 'Fire Alarm & Detection',
-      description:
-        'Fire safety systems with smoke detectors, heat sensors, and panels. Ensure fast detection, real-time alerts, regulatory compliance, and secure operations.',
-      link: '/category/addressable-fire-alarm-detection-systems',
-    },
-    {
-      id: 2,
-      image: StructuredCablingImage,
-      title: 'Structured Cabling',
-      description:
-        'Fiber optics, Cat6/Cat6a cabling, and management systems. Enable seamless communication, high-speed transmission, scalability, and reduced downtime for businesses.',
-      link: '/category/giganet-products',
-    },
-    {
-      id: 3,
-      image: IPImage,
-      title: 'CCTV/IP Camera',
-      description:
-        'HD IP cameras with night vision, motion detection, and cloud storage. Provide continuous monitoring, analytics, and asset protection around-the-clock.',
-      link: '/category/hikvision',
-    },
-    {
-      id: 4,
-      image: VoIPImage,
-      title: 'VoIP & Telephony',
-      description:
-        'VoIP systems with call routing, conferencing, voicemail-to-email, and mobile integration. Improve collaboration, cut costs, and scale communication efficiently.',
-      link: '/category/alcatel-lucent-products',
-    },
-  ];
-
-  const stats = [
-    { number: '10+', label: 'Years Experience' },
-    { number: '500+', label: 'Projects Delivered' },
-    { number: '8', label: 'Trusted Brand Partners' },
-    { number: '100%', label: 'Customer Commitment' },,
-  ];
-
-  const whyChoosePoints = [
-    'Authorized Eaton Distributor — certified partnership with globally trusted brands',
-    'Quality Products — we deliver only premium solutions that meet the highest industry standards',
-    'Certified Technicians — professional installation and support services guaranteed',
-    'Competitive Pricing — best value solutions without compromising on quality',
-  ];
 
   useEffect(() => {
     let cancelled = false;
 
     const loadBanners = async () => {
       try {
-        // fetchHeroBanners always returns an array (handles paginated + throttled cases)
-        const data = await fetchHeroBanners();
-
+        const data = await fetchHeroBanners(); // always an array
         const promotionalSlides = data.map((banner) => ({
           id: `promo-${banner.id}`,
           displayMode: banner.display_mode,
@@ -190,10 +216,8 @@ const Home = () => {
           description: banner.description,
           images: Array.isArray(banner.images) ? banner.images : [],
           link: banner.button_link,
-          bgClass: banner.background_class || 'heroSlide1',
-          buttonText: banner.button_text || 'Explore Products',
+          buttonText: banner.button_text || 'Explore products',
         }));
-
         if (!cancelled) setSlides([...promotionalSlides, ...permanentSlides]);
       } catch (error) {
         console.error('Error fetching hero banners:', error);
@@ -204,47 +228,45 @@ const Home = () => {
     };
 
     loadBanners();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  // Start the one-time hero intro window as soon as the hero is on screen
   useEffect(() => {
     if (loading) return undefined;
-
     const timer = setTimeout(() => setIntroActive(false), HERO_INTRO_MS);
-
     return () => clearTimeout(timer);
   }, [loading]);
 
+  // Auto-rotate. Depends on currentSlide so a manual change restarts the timer
+  // instead of being immediately followed by an automatic advance.
   useEffect(() => {
-    if (slides.length === 0) return;
-
+    if (slides.length < 2 || prefersReducedMotion()) return undefined;
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-
+    }, SLIDE_MS);
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, [slides.length, currentSlide]);
 
-  const handleSlideChange = (index) => {
-    if (index !== currentSlide) {
+  useEffect(() => () => clearTimeout(fadeTimer.current), []);
+
+  const handleSlideChange = useCallback(
+    (index) => {
+      if (index === currentSlide) return;
       setIsTransitioning(true);
-
-      setTimeout(() => {
+      clearTimeout(fadeTimer.current);
+      fadeTimer.current = setTimeout(() => {
         setCurrentSlide(index);
         setIsTransitioning(false);
-      }, 300);
-    }
-  };
+      }, FADE_MS);
+    },
+    [currentSlide]
+  );
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Loading...</p>
+      <div className={styles.loadingContainer} role="status">
+        <div className={styles.spinner} />
+        <p>Loading…</p>
       </div>
     );
   }
@@ -252,429 +274,209 @@ const Home = () => {
   const currentSlideData = slides[currentSlide] || permanentSlides[0];
   const currentImages = currentSlideData.images || [];
 
-  // Hero entrance helpers: return nothing once the intro window has closed
-  const introClass = (variant = '') =>
-    introActive ? `${styles.introItem} ${variant}` : '';
-  const introStyle = (delayMs) =>
-    introActive ? { '--intro-delay': `${delayMs}ms` } : undefined;
+  const introClass = (variant = '') => (introActive ? `${styles.introItem} ${variant}` : '');
+  const introStyle = (delayMs) => (introActive ? { '--intro-delay': `${delayMs}ms` } : undefined);
 
   const imagesGridClass = `${styles.heroImagesGrid} ${
-    currentImages.length === 3
-      ? styles.threeImages
-      : currentImages.length === 2
-      ? styles.twoImages
-      : ''
+    currentImages.length === 3 ? styles.threeImages : currentImages.length === 2 ? styles.twoImages : ''
   }`;
+
+  const renderHeroImages = (delay) => (
+    <div
+      className={`${styles.heroImageWrapper} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`}
+    >
+      <div className={`${imagesGridClass} ${introClass(styles.introImages)}`} style={introStyle(delay)}>
+        {currentImages.map((img, idx) => (
+          <img
+            key={idx}
+            src={img}
+            alt={idx === 0 ? currentSlideData.title : ''}
+            className={styles.heroImage}
+            loading={idx === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  const goTo = (link) => () => navigate(link);
+
+  const posterImg = (
+    <img
+      src={currentSlideData.posterImage}
+      alt={currentSlideData.title || 'Promotional poster'}
+      className={`${styles.heroPosterImage} ${introClass(styles.introPoster)}`}
+      style={introStyle(0)}
+    />
+  );
 
   return (
     <div ref={revealRootRef}>
-      {/* Hero Banner */}
-      <section className={styles.heroSection}>
+      {/* Hero */}
+      <section className={styles.heroSection} aria-roledescription="carousel" aria-label="Featured">
         {currentSlideData.displayMode === 'poster' ? (
           <div className={styles.heroPosterContainer}>
             {currentSlideData.posterLink ? (
-              <a
-                href={currentSlideData.posterLink}
-                className={styles.heroPosterLink}
-              >
-                <img
-                  src={currentSlideData.posterImage}
-                  alt="Promotional Poster"
-                  className={`${styles.heroPosterImage} ${introClass(
-                    styles.introPoster
-                  )}`}
-                  style={introStyle(0)}
-                />
-              </a>
+              <a href={currentSlideData.posterLink} className={styles.heroPosterLink}>{posterImg}</a>
             ) : (
-              <img
-                src={currentSlideData.posterImage}
-                alt="Promotional Poster"
-                className={`${styles.heroPosterImage} ${introClass(
-                  styles.introPoster
-                )}`}
-                style={introStyle(0)}
-              />
+              posterImg
             )}
-
             <div className={styles.heroPosterNavigation}>
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSlideChange(index)}
-                  className={`${styles.heroDot} ${
-                    index === currentSlide ? styles.heroDotActive : ''
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
+              <HeroDots count={slides.length} current={currentSlide} onSelect={handleSlideChange} />
             </div>
           </div>
         ) : (
           <div className={styles.heroContainer}>
-            {/* Desktop Layout */}
+            {/* Desktop */}
             <div className={styles.heroContent}>
-              <p
-                className={`${styles.heroSubtitle} ${introClass()}`}
-                style={introStyle(100)}
-              >
+              <p className={`label-mono ${styles.heroSubtitle} ${introClass()}`} style={introStyle(100)}>
                 {currentSlideData.subtitle}
               </p>
 
-              <h1
-                className={`${styles.heroTitle} ${introClass(
-                  styles.introTitle
-                )}`}
-                style={introStyle(220)}
-              >
+              <h1 className={`${styles.heroTitle} ${introClass(styles.introTitle)}`} style={introStyle(220)}>
                 {currentSlideData.title}
               </h1>
 
-              <p
-                className={`${styles.heroDescription} ${introClass()}`}
-                style={introStyle(340)}
-              >
+              <p className={`${styles.heroDescription} ${introClass()}`} style={introStyle(340)}>
                 {currentSlideData.description}
               </p>
 
-              <div
-                className={`${styles.heroButtons} ${introClass(
-                  styles.introButtons
-                )}`}
-                style={introStyle(460)}
-              >
-                <button
-                  className={`btn btn--primary ${styles.heroButton}`}
-                  onClick={() =>
-                    (window.location.href = currentSlideData.link)
-                  }
-                >
+              <div className={`${styles.heroButtons} ${introClass(styles.introButtons)}`} style={introStyle(460)}>
+                <button type="button" className="btn btn--primary" onClick={goTo(currentSlideData.link)}>
                   {currentSlideData.buttonText}
-
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    style={{ width: '18px', height: '18px' }}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
+                  <span className="btn__arrow" aria-hidden="true">→</span>
                 </button>
-
-                <a
-                  href="/contact"
-                  className={`btn btn--outline ${styles.heroButtonSecondary}`}
-                >
-                  Get a Quote
-                </a>
+                <Link to="/contact" className="btn btn--secondary">Get a quote</Link>
               </div>
 
-              <div
-                className={`${styles.heroNavigation} ${introClass(
-                  styles.introButtons
-                )}`}
-                style={introStyle(560)}
-              >
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSlideChange(index)}
-                    className={`${styles.heroDot} ${
-                      index === currentSlide ? styles.heroDotActive : ''
-                    }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
+              <div className={`${styles.heroNavigation} ${introClass(styles.introButtons)}`} style={introStyle(560)}>
+                <HeroDots count={slides.length} current={currentSlide} onSelect={handleSlideChange} />
               </div>
             </div>
 
-            <div className={styles.heroImageContainer}>
-              <div
-                className={`${styles.heroImageWrapper} ${
-                  isTransitioning ? styles.fadeOut : styles.fadeIn
-                }`}
-              >
-                <div
-                  className={`${imagesGridClass} ${introClass(
-                    styles.introImages
-                  )}`}
-                  style={introStyle(200)}
-                >
-                  {currentImages.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt={`${currentSlideData.title} - ${idx + 1}`}
-                      className={styles.heroImage}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+            <div className={styles.heroImageContainer}>{renderHeroImages(200)}</div>
 
-            {/* Mobile Layout */}
+            {/* Mobile */}
             <div className={styles.heroMobileLayout}>
-              <div className={styles.heroMobileImages}>
-                <div
-                  className={`${styles.heroImageWrapper} ${
-                    isTransitioning ? styles.fadeOut : styles.fadeIn
-                  }`}
-                >
-                  <div
-                    className={`${imagesGridClass} ${introClass(
-                      styles.introImages
-                    )}`}
-                    style={introStyle(80)}
-                  >
-                    {currentImages.map((img, idx) => (
-                      <img
-                        key={idx}
-                        src={img}
-                        alt={`${currentSlideData.title} - ${idx + 1}`}
-                        className={styles.heroImage}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <div className={styles.heroMobileImages}>{renderHeroImages(80)}</div>
 
               <button
-                className={`btn btn--primary ${styles.heroMobileButton} ${introClass(
-                  styles.introButtons
-                )}`}
+                type="button"
+                className={`btn btn--primary ${introClass(styles.introButtons)}`}
                 style={introStyle(200)}
-                onClick={() =>
-                  (window.location.href = currentSlideData.link)
-                }
+                onClick={goTo(currentSlideData.link)}
               >
                 {currentSlideData.buttonText}
+                <span className="btn__arrow" aria-hidden="true">→</span>
               </button>
 
               <div className={styles.heroMobileContent}>
-                <p
-                  className={`${styles.heroSubtitle} ${introClass()}`}
-                  style={introStyle(280)}
-                >
+                <p className={`label-mono ${styles.heroSubtitle} ${introClass()}`} style={introStyle(280)}>
                   {currentSlideData.subtitle}
                 </p>
-
-                <h1
-                  className={`${styles.heroTitle} ${introClass(
-                    styles.introTitle
-                  )}`}
-                  style={introStyle(360)}
-                >
+                <h2 className={`${styles.heroTitle} ${introClass(styles.introTitle)}`} style={introStyle(360)}>
                   {currentSlideData.title}
-                </h1>
-
-                <p
-                  className={`${styles.heroDescription} ${introClass()}`}
-                  style={introStyle(440)}
-                >
+                </h2>
+                <p className={`${styles.heroDescription} ${introClass()}`} style={introStyle(440)}>
                   {currentSlideData.description}
                 </p>
               </div>
 
-              <div
-                className={`${styles.heroMobileNavigation} ${introClass(
-                  styles.introButtons
-                )}`}
-                style={introStyle(520)}
-              >
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSlideChange(index)}
-                    className={`${styles.heroDot} ${
-                      index === currentSlide ? styles.heroDotActive : ''
-                    }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
+              <div className={`${styles.heroMobileNavigation} ${introClass(styles.introButtons)}`} style={introStyle(520)}>
+                <HeroDots count={slides.length} current={currentSlide} onSelect={handleSlideChange} />
               </div>
             </div>
           </div>
         )}
       </section>
 
-      {/* Partner Brands */}
-      <section className={styles.partnersSection}>
-        <div
-          className={`${styles.partnersContainer} ${styles.reveal} ${styles.revealSoft}`}
-          data-reveal
-        >
+      {/* Partner brands */}
+      <section className={styles.partnersSection} aria-label="Brand partners">
+        <div className={`${styles.partnersContainer} ${styles.reveal} ${styles.revealSoft}`} data-reveal>
           <div className={styles.sliderWrapper}>
             <div className={styles.sliderTrack}>
-              {[
-                {
-                  logo: AlcatelLogo,
-                  name: 'Alcatel',
-                  link: 'https://www.al-enterprise.com/',
-                },
-                {
-                  logo: AvayaLogo,
-                  name: 'Avaya',
-                  link: 'https://www.avaya.com/',
-                },
-                {
-                  logo: CiscoLogo,
-                  name: 'Cisco',
-                  link: 'https://www.cisco.com/',
-                },
-                {
-                  logo: EatonLogo,
-                  name: 'Eaton',
-                  link: 'https://www.eaton.com/',
-                },
-                {
-                  logo: SiemonLogo,
-                  name: 'Siemon',
-                  link: 'https://www.siemon.com/',
-                },
-                {
-                  logo: UbiquitiLogo,
-                  name: 'Ubiquiti',
-                  link: 'https://www.ui.com/',
-                },
-                {
-                  logo: GiganetLogo,
-                  name: 'Giganet',
-                  link: 'https://www.giganet.com.eg/',
-                },
-                {
-                  logo: HikvisionLogo,
-                  name: 'Hikvision',
-                  link: 'https://www.hikvision.com/',
-                },
-              ].concat([
-                {
-                  logo: AlcatelLogo,
-                  name: 'Alcatel',
-                  link: 'https://www.al-enterprise.com/',
-                },
-                {
-                  logo: AvayaLogo,
-                  name: 'Avaya',
-                  link: 'https://www.avaya.com/',
-                },
-                {
-                  logo: CiscoLogo,
-                  name: 'Cisco',
-                  link: 'https://www.cisco.com/',
-                },
-                {
-                  logo: EatonLogo,
-                  name: 'Eaton',
-                  link: 'https://www.eaton.com/',
-                },
-                {
-                  logo: SiemonLogo,
-                  name: 'Siemon',
-                  link: 'https://www.siemon.com/',
-                },
-                {
-                  logo: UbiquitiLogo,
-                  name: 'Ubiquiti',
-                  link: 'https://www.ui.com/',
-                },
-                {
-                  logo: GiganetLogo,
-                  name: 'Giganet',
-                  link: 'https://www.giganet.com.eg/',
-                },
-                {
-                  logo: HikvisionLogo,
-                  name: 'Hikvision',
-                  link: 'https://www.hikvision.com/',
-                },
-              ]).map((brand, index) => (
-                <a
-                  key={index}
-                  href={brand.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.partnerLogoLink}
-                >
-                  <img
-                    src={brand.logo}
-                    alt={brand.name}
-                    className={styles.partnerLogo}
-                  />
-                </a>
-              ))}
+              {marqueeBrands.map((brand, index) => {
+                const isClone = index >= brands.length;
+                return (
+                  <a
+                    key={index}
+                    href={brand.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.partnerLogoLink}
+                    aria-hidden={isClone || undefined}
+                    tabIndex={isClone ? -1 : undefined}
+                  >
+                    <img
+                      src={brand.logo}
+                      alt={isClone ? '' : brand.name}
+                      className={styles.partnerLogo}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stat Strip */}
-      <section className={styles.statSection}>
+      {/* Stats */}
+      <section className={styles.statSection} aria-label="Marinc in numbers">
         <div className={styles.statContainer}>
-          {stats.map((stat, idx) => (
-            <div
-              key={idx}
-              className={`${styles.statItem} ${styles.reveal} ${styles.revealStat}`}
-              data-reveal
-            >
+          {stats.map((stat) => (
+            <div key={stat.label} className={`${styles.statItem} ${styles.reveal} ${styles.revealStat}`} data-reveal>
               <span className={styles.statNumber}>{stat.number}</span>
-              <span className={styles.statLabel}>{stat.label}</span>
+              <span className={`label-mono ${styles.statLabel}`}>{stat.label}</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Our Services */}
+      {/* Services */}
       <section className={styles.servicesSection}>
         <div className={styles.servicesContainer}>
           <div className={styles.sectionHeading} data-reveal>
-            <span
-              className={`${styles.eyebrow} ${styles.revealChild} ${styles.revealHeading}`}
-            >
-              What We Offer
+            <span className={`label-mono ${styles.eyebrow} ${styles.revealChild} ${styles.revealHeading}`}>
+              What we offer
             </span>
-            <h2
-              className={`${styles.servicesTitle} ${styles.revealChild} ${styles.revealHeading}`}
-            >
-              Our Services
+            <h2 className={`${styles.servicesTitle} ${styles.revealChild} ${styles.revealHeading}`}>
+              Our services
             </h2>
           </div>
 
           <div className={styles.servicesGrid}>
             {services.map((service) => (
-              <div
-                key={service.id}
-                className={`${styles.reveal} ${styles.revealService}`}
-                data-reveal
-              >
-                <a href={service.link} className={styles.serviceCard}>
+              <div key={service.id} className={`${styles.reveal} ${styles.revealService}`} data-reveal>
+                <Link to={service.link} className={styles.serviceCard}>
                   <div className={styles.serviceImageWrapper}>
                     <img
                       src={service.image}
-                      alt={service.title}
+                      alt=""
                       className={styles.serviceImage}
+                      loading="lazy"
+                      decoding="async"
+                      width={400}
+                      height={300}
                     />
                   </div>
-
                   <div className={styles.serviceContent}>
                     <h3 className={styles.serviceTitle}>{service.title}</h3>
-
-                    <p className={styles.serviceDescription}>
-                      {service.description}
-                    </p>
+                    <p className={styles.serviceDescription}>{service.description}</p>
+                    <span className={`label-mono ${styles.serviceMore}`}>
+                      Browse products <span className={styles.serviceArrow} aria-hidden="true">→</span>
+                    </span>
                   </div>
-                </a>
+                </Link>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Popular Products Carousel */}
+      {/* Popular products */}
       <div className={`${styles.reveal} ${styles.revealSoft}`} data-reveal>
         <PopularProductsCarousel />
       </div>
@@ -683,33 +485,30 @@ const Home = () => {
       <section className={styles.whySection}>
         <div className={styles.whyContainer} data-reveal>
           <div className={`${styles.whyText} ${styles.revealChild} ${styles.fromLeft}`}>
-            <span className={styles.eyebrow}>Why Marinc</span>
-
-            <h2 className={styles.whyTitle}>
-              Built on Trust, Backed by Expertise
-            </h2>
+            <span className={`label-mono ${styles.eyebrow}`}>Why Marinc</span>
+            <h2 className={styles.whyTitle}>Built on trust, backed by expertise</h2>
 
             <ul className={styles.whyList}>
               {whyChoosePoints.map((point, index) => (
                 <li
-                  key={index}
+                  key={point}
                   className={`${styles.whyItem} ${styles.revealChild} ${styles.revealItemUp}`}
                   style={{ '--reveal-delay': `${300 + index * 120}ms` }}
                 >
-                  <span className={styles.whyCheck}>✓</span>
+                  <span className={styles.whyCheck} aria-hidden="true">✓</span>
                   <span>{point}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div
-            className={`${styles.whyImageWrapper} ${styles.revealChild} ${styles.fromRight}`}
-          >
+          <div className={`${styles.whyImageWrapper} ${styles.revealChild} ${styles.fromRight}`}>
             <img
               src={WhyImage}
               alt="Marinc Systems team at work"
               className={styles.whyImage}
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>
