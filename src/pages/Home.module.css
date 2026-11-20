@@ -113,7 +113,7 @@
 /* Hero images */
 .heroImageContainer {
   position: relative;
-  height: 480px;
+  height: 500px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -147,21 +147,32 @@
   padding: var(--space-4);
 }
 
-/* Three images: wide first image on top row, two smaller below */
+/* Multi-image slides: no tiles or borders, the products sit directly on the
+   hero background. Each image fills an equal grid cell and is scaled with
+   `contain` (centered, never cropped), so sizes and gaps stay even. */
+.heroImagesGrid.threeImages .heroImage,
+.heroImagesGrid.twoImages .heroImage {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Three images: wide strip on top, two equal cells below */
 .heroImagesGrid.threeImages {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: 1.4fr 1fr;
-  gap: var(--space-4);
+  grid-template-rows: 0.9fr 1fr;
+  gap: var(--space-5) var(--space-4);
   padding: 0;
-  max-height: 460px;
+  max-height: 100%;
 }
-.heroImagesGrid.threeImages .heroImage { max-height: 220px; }
-.heroImagesGrid.threeImages .heroImage:first-child { grid-column: 1 / -1; grid-row: 1; max-height: 290px; }
-.heroImagesGrid.threeImages .heroImage:not(:first-child) { max-height: 150px; }
+.heroImagesGrid.threeImages .heroImage:first-child { grid-column: 1 / -1; grid-row: 1; }
 
-.heroImagesGrid.twoImages { flex-direction: column; gap: var(--space-4); }
-.heroImagesGrid.twoImages .heroImage { max-height: 220px; flex: 1; }
+/* Two images: stacked equal cells */
+.heroImagesGrid.twoImages { flex-direction: column; gap: var(--space-5); padding: 0; }
+.heroImagesGrid.twoImages .heroImage { flex: 1; }
 
 .heroMobileLayout { display: none; }
 
@@ -325,15 +336,25 @@
 
 .whyCheck { flex-shrink: 0; margin-top: 2px; color: var(--led-in); font-weight: 800; }
 
+/* The photo is portrait, so the frame is squarer (was 4 / 3) to show more of it,
+   and the image is anchored near the top so the fire panel, the technician's
+   raised hand and the "MARINC SYSTEMS LIMITED" lettering all stay in view.
+   Tune object-position: lower % = more panel, higher % = more vest. */
 .whyImageWrapper {
-  aspect-ratio: 4 / 3;
-  max-height: 420px;
+  aspect-ratio: 1 / 1;
+  max-height: 480px;
   overflow: hidden;
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
   background: var(--panel);
 }
-.whyImage { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+.whyImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 10%;
+  display: block;
+}
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
@@ -365,20 +386,18 @@
   .heroSection { padding: var(--space-6) var(--gutter); }
   .heroPosterContainer { height: 36vh; min-height: 36vh; }
 
-  .heroMobileImages { width: 100%; max-height: 260px; }
-  .heroMobileImages .heroImageWrapper { height: 260px; }
-  .heroMobileImages .heroImagesGrid.threeImages { max-height: 260px; gap: 0.75rem; }
-  .heroMobileImages .heroImagesGrid.threeImages .heroImage { max-height: 120px; }
-  .heroMobileImages .heroImagesGrid.threeImages .heroImage:first-child { max-height: 150px; }
-  .heroMobileImages .heroImagesGrid.threeImages .heroImage:not(:first-child) { max-height: 100px; }
-  .heroMobileImages .heroImagesGrid.twoImages .heroImage { max-height: 120px; }
+  .heroMobileImages { width: 100%; max-height: 300px; }
+  .heroMobileImages .heroImageWrapper { height: 300px; }
+  .heroMobileImages .heroImagesGrid.threeImages { gap: 0.75rem; }
+  .heroMobileImages .heroImagesGrid.twoImages { gap: 0.75rem; }
 
   .heroMobileContent { display: flex; flex-direction: column; gap: var(--space-3); }
   .heroMobileContent .heroTitle { font-size: var(--text-3xl); }
   .heroMobileContent .heroDescription { max-width: 100%; font-size: var(--text-base); }
   .heroMobileNavigation { display: flex; gap: 0.5rem; margin-top: var(--space-2); }
 
-  .whyImageWrapper { max-height: 280px; }
+  /* was 280px, which cropped the photo heavily on phones */
+  .whyImageWrapper { max-height: 360px; }
   .servicesTitle, .whyTitle { font-size: var(--text-2xl); }
 }
 
